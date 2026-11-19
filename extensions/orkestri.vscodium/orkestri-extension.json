@@ -1,10 +1,10 @@
 {
   "id": "orkestri.vscodium",
   "name": "VSCodium",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "publisher": "orkestri",
   "description": "VSCodium, the open-source build of VS Code (MIT), as its own window inside a card, one per card; linked terminals drive it (orkestri code). Installing it downloads the portable VSCodium 1.143.17232 for Windows x64 (221 MB) from its GitHub release, checked against the pinned sha256.",
-  "minAppVersion": "0.1.0",
+  "minAppVersion": "0.1.2",
   "icon": "icon.png",
   "kinds": ["app"],
   "permissions": ["process", "network", "files"],
