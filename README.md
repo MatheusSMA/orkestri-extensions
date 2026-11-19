@@ -7,6 +7,7 @@ publisher's signature match the index.
 | Extension | What it adds |
 | --- | --- |
 | [`orkestri.sepia`](extensions/orkestri.sepia) | A warm paper theme |
+| [`orkestri.lucid-volcano`](extensions/orkestri.lucid-volcano) | Two dark themes, Lava and Magma, with a pink-red accent: the palette of [Lucid Volcano](https://marketplace.visualstudio.com/items?itemName=MarcosGabriel.lucid-volcano) by Marcos Gabriel (its colours only; the original states no licence) |
 | [`orkestri.vscodium`](extensions/orkestri.vscodium) | VSCodium (MIT) inside a card as its own window, no server; the portable build is downloaded on first start and checked against its pinned sha256 |
 | [`orkestri.files`](extensions/orkestri.files) | A sample app: a local static page served by Python in a card |
 
