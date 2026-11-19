@@ -7,8 +7,7 @@ publisher's signature match the index.
 | Extension | What it adds |
 | --- | --- |
 | [`orkestri.sepia`](extensions/orkestri.sepia) | A warm paper theme |
-| [`orkestri.python-kit`](extensions/orkestri.python-kit) | A Python terminal preset and a prompt that explains an error |
-| [`orkestri.vscode-web`](extensions/orkestri.vscode-web) | VS Code (or VSCodium) in a card, through `code serve-web` |
+| [`orkestri.vscodium`](extensions/orkestri.vscodium) | VSCodium (MIT) inside a card as its own window, no server; the portable build is downloaded on first start and checked against its pinned sha256 |
 | [`orkestri.files`](extensions/orkestri.files) | A sample app: a local static page served by Python in a card |
 
 ## Layout
@@ -74,7 +73,7 @@ unknown key, kind, permission, contribution or colour token is refused, not igno
 | `themes` | contributions | `id`, `label`, `base` (`light` or `dark`), `colors`: tokens over the base, each `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa` |
 | `terminalPresets` | contributions | `id`, `name`, `command`, optional `icon` |
 | `prompts` | contributions | `name`, optional `description`, `file` (a UTF-8 file inside the package, up to 256 KB) |
-| `apps` | app | `id`, `name`, `command`, `args`, optional `env`, `cwd`, `port` (`"auto"` or 1024–65535), `health` and `path` (start with `/`), `startTimeoutMs` (at most 300000) |
+| `apps` | app | `id`, `name`, `command`, `args`, optional `env`, `cwd`, `port` (`"auto"` or 1024–65535), `health` and `path` (start with `/`), `startTimeoutMs` (at most 300000); for a window app also `window`, `download`, `icon`, `defaults`, `openFolder` (below) |
 
 Theme tokens: `background`, `canvas_bg`, `grid_line`, `bg`, `bg_elevated`, `bg_hover`, `bg_active`, `fg`, `fg_muted`,
 `fg_subtle`, `border`, `border_strong`, `accent`, `accent_soft`, `destructive`, `warning`, `success`, `sidebar_bg`,
@@ -84,6 +83,20 @@ Theme tokens: `background`, `canvas_bg`, `grid_line`, `bg`, `bg_elevated`, `bg_h
 An app's `command`, `args`, `env` and `cwd` may use `${port}` (a free port of 127.0.0.1), `${token}` (a secret kept
 between starts), `${extensionPath}` and `${dataPath}` (the extension's own data folder). The program runs with no
 console window and ends with the extension or with Orkestri; it is ready when its `health` path answers on its port.
+
+**Window apps** (`"window": true`) show the program's own window in a card instead of a web page: no port, no server,
+and they need only `process`. Orkestri catches the window as it is created, strips its frame and keeps it over the
+card. Their extra keys:
+
+- `download`: `{ "url": "https://…", "sha256": "<64 lower-case hex>", "size": <bytes>, "version": "<folder name>" }`,
+  the program's archive (zip), fetched on the first start, checked against its size and sha256 and unpacked into the
+  profile's `apps\<app id>\<version>`; `${appPath}` is that folder. Needs `network`. The package itself never carries
+  the program.
+- `icon`: the glyph of the card's header (a Lucide name Orkestri knows, such as `code`).
+- `defaults`: a folder of the package whose files are copied into `${dataPath}` when they are not there yet (first
+  settings; a person's own changes stay).
+- `openFolder`: the arguments that open a folder in the running program (`${folder}`: the workspace's working folder),
+  run as a second start of `command`; the card's "Abrir pasta".
 
 Packages: at most 50 MB zipped and 200 MB unpacked; no links, no absolute paths or `..`; a `contributions` package
 holds only data files (`.json`, `.md`, `.png`, `.svg`, `.txt`).
@@ -103,7 +116,7 @@ maintainer. CI marks a pull request for review, and fails it until a maintainer 
 when it:
 
 - asks for a permission the previous version did not have, or for `network` at all;
-- adds or changes an app's command, arguments or environment;
+- adds or changes an app's command, arguments or environment, or the program its `download` fetches;
 - may serve on anything but 127.0.0.1 (`0.0.0.0`, `::`, another host after `--host`, `--bind` and the like);
 - changes a publisher's key or GitHub account, removes something, or touches files outside `extensions/` and
   `publishers/`.

@@ -64,6 +64,31 @@ test('manifest rules', () => {
   refuses({ contributes: { apps: [{ id: 's', name: 'S', command: 'x', port: 80 }] } }, 'port', app);
 });
 
+const sha = 'a'.repeat(64);
+const editor = { id: 'vscodium', name: 'VSCodium', icon: 'code', window: true, command: '${appPath}/VSCodium.exe', defaults: 'defaults', openFolder: ['--reuse-window', '${folder}'],
+  download: { url: 'https://github.com/VSCodium/vscodium/releases/download/1/v.zip', sha256: sha, size: 10, version: '1.143.17232' } };
+const window = { id: 'orkestri.vscodium', name: 'VSCodium', version: '1.0.0', publisher: 'orkestri', kinds: ['app'], permissions: ['process', 'network', 'files'],
+  contributes: { apps: [editor] } };
+const windowFiles = new Map([['defaults/user-data/User/settings.json', Buffer.from('{}')]]);
+
+test('window apps: no server, a pinned download', () => {
+  validate(window, windowFiles);
+  const refuses = (patch, text, permissions = window.permissions) =>
+    assert.throws(() => validate({ ...window, permissions, contributes: { apps: [{ ...editor, ...patch }] } }, windowFiles), (e) => e.message.includes(text), text);
+  refuses({ window: 'yes' }, 'true or false');
+  refuses({ window: false }, '"localhost"');
+  refuses({}, '"network"', ['process']);
+  refuses({}, '"process"', []);
+  refuses({ download: { ...editor.download, url: 'http://x/v.zip' } }, 'download');
+  refuses({ download: { ...editor.download, sha256: 'A'.repeat(64) } }, 'download');
+  refuses({ download: { ...editor.download, version: '../1' } }, 'download');
+  refuses({ download: { ...editor.download, size: 0 } }, 'download');
+  refuses({ icon: 'Code!' }, 'icon');
+  refuses({ defaults: '../x' }, 'inside');
+  refuses({ defaults: 'missing' }, 'folder');
+  refuses({ openFolder: '--reuse-window' }, 'openFolder');
+});
+
 test('packages: paths stay inside, no links', () => {
   const ok = unzip(zip([{ name: './' }, { name: './orkestri-extension.json', data: Buffer.from('{}') }, { name: './www/' }, { name: './www/a.html', data: Buffer.from('a') }]));
   assert.deepEqual([...ok.keys()], ['orkestri-extension.json', 'www/a.html']);
@@ -86,4 +111,10 @@ test('what needs a review', () => {
   assert.ok(surprises(app, open).includes('app server may serve on more than 127.0.0.1'));
   open.contributes.apps[0].args = ['serve', '--host=192.168.0.2'];
   assert.ok(surprises(app, open).includes('app server may serve on more than 127.0.0.1'));
+  // A window app's program: a new or changed download is read by a person.
+  assert.ok(surprises(null, window).includes(`app vscodium downloads a program: ${editor.download.url} (sha256 ${sha})`));
+  assert.deepEqual(surprises(window, window), ['can reach the internet (network)']);
+  const moved = structuredClone(window);
+  moved.contributes.apps[0].download.url = 'https://example.com/other.zip';
+  assert.deepEqual(surprises(window, moved), ['can reach the internet (network)', `app vscodium downloads a program: https://example.com/other.zip (sha256 ${sha})`]);
 });

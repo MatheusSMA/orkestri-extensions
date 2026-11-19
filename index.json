@@ -26,21 +26,6 @@
       "signature": "YlQXYF6Fj+ONw5uVlWCkFEUQBVPqsIb0x0/nHMK8MOT0u9DDzbEFne9cIl91Wf61VL1yQuro0Hcw4RyvjeDBAw=="
     },
     {
-      "id": "orkestri.python-kit",
-      "name": "Python Kit",
-      "version": "1.0.0",
-      "publisher": "orkestri",
-      "description": "A Python terminal preset and a prompt that explains an error.",
-      "kinds": [
-        "contributions"
-      ],
-      "permissions": [],
-      "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-19/orkestri.python-kit-1.0.0.zip",
-      "size": 6160,
-      "sha256": "c334cf3fd94a62c48a7dcdc1b95e3593ed86a791e9eaa9eba08ed0bd804f68ac",
-      "signature": "BdnoPvM2SpO90TMafSS8nqABag29Yr8W5qyXcpfoOj2wpoUAD1YZd/KlBHbQ+svinTznWWGNAauN9YKeAaOVDA=="
-    },
-    {
       "id": "orkestri.sepia",
       "name": "Orkestri Sépia",
       "version": "1.0.0",
@@ -56,24 +41,23 @@
       "signature": "/hi7ym9tICQBvrYQd52EFa0jgkguGPCx++U+9rma6wpFU0HrkT5QhCpDlBzhQtggc52eBBrXU/GTXCiShOmuCw=="
     },
     {
-      "id": "orkestri.vscode-web",
-      "name": "VS Code (web)",
-      "version": "0.1.0",
+      "id": "orkestri.vscodium",
+      "name": "VSCodium",
+      "version": "1.0.0",
       "publisher": "orkestri",
-      "description": "The installed VS Code (or VSCodium) as a web app in a card, through `code serve-web`. The first start downloads the VS Code server.",
+      "description": "VSCodium, the open-source build of VS Code (MIT), as its own window inside a card: no server. The first start downloads the portable VSCodium 1.143.17232 for Windows x64 (221 MB) from its GitHub release, checked against the pinned sha256.",
       "kinds": [
         "app"
       ],
       "permissions": [
         "process",
-        "localhost",
         "network",
         "files"
       ],
-      "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-19/orkestri.vscode-web-0.1.0.zip",
-      "size": 8018,
-      "sha256": "edafcd7465bd9e0f5947d7e6317a97da7c4a7d0c99bc5acf8431625df4d773ff",
-      "signature": "6L9h+rSLopWbxnGy73n8x7bBP8MkoDj1eghMawai9IsD27HOm92BOG3JGWi6cBxAwuLmvpnADF1FhJKT/Go4Bg=="
+      "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-19b/orkestri.vscodium-1.0.0.zip",
+      "size": 9488,
+      "sha256": "da3938345b5cd223cac2ad1ca2dbbd58a9fe7126ae704cc5fcc0fb8c0bc30377",
+      "signature": "jsn6+cxJYBww4V7RnIYx6RsT7mPVgYbbFnrgh5F95VXJwwDXWFVhXOCRUgsCP5HPzHV7Qq3CSB2pF912k+V4Dw=="
     }
   ]
 }

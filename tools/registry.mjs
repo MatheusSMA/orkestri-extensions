@@ -142,8 +142,21 @@ function validate(m, files) {
         named('id');
         short('name', 100);
         short('command', 2000);
-        if (!permissions.includes('process') || !permissions.includes('localhost')) fail('an app needs the permissions "process" and "localhost"');
-        if (has('args') && !(Array.isArray(item.args) && item.args.every((a) => typeof a === 'string'))) fail('contributes.apps: args must be a list of texts');
+        // A window app is a program's own window shown in a card (VSCodium): no local server.
+        const window = has('window') ? item.window : false;
+        if (typeof window !== 'boolean') fail('contributes.apps: window must be true or false');
+        if (window && !permissions.includes('process')) fail('a window app needs the permission "process"');
+        if (!window && (!permissions.includes('process') || !permissions.includes('localhost'))) fail('an app needs the permissions "process" and "localhost"');
+        if (has('download')) {
+          if (!validDownload(item.download)) fail('contributes.apps: download needs url (https), sha256 (64 lower-case hex digits), size and version');
+          if (!permissions.includes('network')) fail('a download needs the permission "network"');
+        }
+        if (has('icon') && !(typeof item.icon === 'string' && word(item.icon))) fail('contributes.apps: icon must be a glyph name');
+        if (has('defaults')) {
+          const folder = inside(t('defaults'));
+          if (![...files.keys()].some((f) => f.startsWith(`${folder}/`))) fail('contributes.apps: defaults must be a folder of the extension');
+        }
+        for (const k of ['args', 'openFolder']) if (has(k) && !(Array.isArray(item[k]) && item[k].every((a) => typeof a === 'string'))) fail(`contributes.apps: ${k} must be a list of texts`);
         if (has('env') && !(isObject(item.env) && Object.values(item.env).every((v) => typeof v === 'string'))) fail('contributes.apps: env must map names to texts');
         const port = item.port;
         if (!(port === undefined || port === null || port === 'auto' || (Number.isInteger(port) && port >= 1024 && port <= 65535))) fail('contributes.apps: port must be "auto" or 1024..65535');
@@ -154,6 +167,11 @@ function validate(m, files) {
     }
   }
 }
+
+// An app's `download`: the archive of the program it runs, pinned (https, sha256, size), its version a folder name.
+const validDownload = (d) => isObject(d) && typeof d.url === 'string' && d.url.startsWith('https://') && d.url.length <= 2000
+  && typeof d.sha256 === 'string' && /^[0-9a-f]{64}$/.test(d.sha256) && Number.isInteger(d.size) && d.size > 0
+  && typeof d.version === 'string' && /^[A-Za-z0-9.-]{1,40}$/.test(d.version) && !d.version.startsWith('.');
 
 function utf8(data) {
   try {
@@ -271,10 +289,12 @@ function surprises(old, m) {
   const before = old?.permissions ?? [];
   for (const p of m.permissions ?? []) if (!before.includes(p)) out.push(`asks for a new permission: ${p}`);
   if ((m.permissions ?? []).includes('network')) out.push('can reach the internet (network)');
-  const run = (a) => JSON.stringify([a.command, a.args ?? [], a.env ?? {}]);
-  const known = new Map((old?.contributes?.apps ?? []).map((a) => [a.id, run(a)]));
+  const run = (a) => JSON.stringify([a.command, a.args ?? [], a.env ?? {}, a.openFolder ?? []]);
+  const apps = new Map((old?.contributes?.apps ?? []).map((a) => [a.id, a]));
   for (const a of m.contributes?.apps ?? []) {
-    if (known.get(a.id) !== run(a)) out.push(`app ${a.id} runs a new command: ${[a.command, ...(a.args ?? [])].join(' ')}`);
+    const was = apps.get(a.id);
+    if (!was || run(was) !== run(a)) out.push(`app ${a.id} runs a new command: ${[a.command, ...(a.args ?? [])].join(' ')}`);
+    if (a.download && JSON.stringify(was?.download) !== JSON.stringify(a.download)) out.push(`app ${a.id} downloads a program: ${a.download.url} (sha256 ${a.download.sha256})`);
     if (!local(a.args ?? [])) out.push(`app ${a.id} may serve on more than 127.0.0.1`);
   }
   return out;
