@@ -1,4 +1,4 @@
-// node --test tools/: the rules of registry.mjs on hand-made cases.
+// node --test tools/registry.test.mjs: the rules of registry.mjs on hand-made cases.
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { surprises, unzip, validate } from './registry.mjs';

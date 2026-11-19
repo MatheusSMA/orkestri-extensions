@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: 24
       - name: Tests of the checker
-        run: node --test tools/
+        run: node --test tools/registry.test.mjs
       - name: Check the registry
         if: github.event_name == 'push'
         run: node tools/registry.mjs check
