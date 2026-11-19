@@ -1,0 +1,14 @@
+{
+  "id": "orkestri.python-kit",
+  "name": "Python Kit",
+  "version": "1.0.0",
+  "publisher": "orkestri",
+  "description": "A Python terminal preset and a prompt that explains an error.",
+  "minAppVersion": "0.1.0",
+  "kinds": ["contributions"],
+  "permissions": [],
+  "contributes": {
+    "terminalPresets": [{ "id": "python", "name": "Python", "command": "python", "icon": "terminal" }],
+    "prompts": [{ "name": "Explicar erro", "description": "Explica um erro e propõe a correção", "file": "prompts/explain-error.md" }]
+  }
+}

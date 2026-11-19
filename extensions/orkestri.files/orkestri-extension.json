@@ -1,0 +1,24 @@
+{
+  "id": "orkestri.files",
+  "name": "Orkestri Files",
+  "version": "1.0.0",
+  "publisher": "orkestri",
+  "description": "A local web app in a card: Python's http.server, a stand-in for VSCodium's serve-web.",
+  "minAppVersion": "0.1.0",
+  "kinds": ["app"],
+  "permissions": ["process", "localhost"],
+  "contributes": {
+    "apps": [
+      {
+        "id": "server",
+        "name": "Files",
+        "command": "python",
+        "args": ["-m", "http.server", "${port}", "--bind", "127.0.0.1", "--directory", "${extensionPath}/www"],
+        "port": "auto",
+        "health": "/",
+        "path": "/",
+        "startTimeoutMs": 15000
+      }
+    ]
+  }
+}

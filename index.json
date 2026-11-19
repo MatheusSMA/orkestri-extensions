@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "publishers": {
+    "orkestri": {
+      "key": "9cKViciauT8UUD+UUrn0i+60PxJ2hEs2vzJcWipMrIk=",
+      "github": "MatheusSMA"
+    }
+  },
+  "extensions": [
+    {
+      "id": "orkestri.files",
+      "name": "Orkestri Files",
+      "version": "1.0.0",
+      "publisher": "orkestri",
+      "description": "A local web app in a card: Python's http.server, a stand-in for VSCodium's serve-web.",
+      "kinds": [
+        "app"
+      ],
+      "permissions": [
+        "process",
+        "localhost"
+      ],
+      "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-19/orkestri.files-1.0.0.zip",
+      "size": 5519,
+      "sha256": "2ef23793530597570401d3adb3489362ceea8caa39d6f85ead7f9c4aad16843a",
+      "signature": "YlQXYF6Fj+ONw5uVlWCkFEUQBVPqsIb0x0/nHMK8MOT0u9DDzbEFne9cIl91Wf61VL1yQuro0Hcw4RyvjeDBAw=="
+    },
+    {
+      "id": "orkestri.python-kit",
+      "name": "Python Kit",
+      "version": "1.0.0",
+      "publisher": "orkestri",
+      "description": "A Python terminal preset and a prompt that explains an error.",
+      "kinds": [
+        "contributions"
+      ],
+      "permissions": [],
+      "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-19/orkestri.python-kit-1.0.0.zip",
+      "size": 6160,
+      "sha256": "c334cf3fd94a62c48a7dcdc1b95e3593ed86a791e9eaa9eba08ed0bd804f68ac",
+      "signature": "BdnoPvM2SpO90TMafSS8nqABag29Yr8W5qyXcpfoOj2wpoUAD1YZd/KlBHbQ+svinTznWWGNAauN9YKeAaOVDA=="
+    },
+    {
+      "id": "orkestri.sepia",
+      "name": "Orkestri Sépia",
+      "version": "1.0.0",
+      "publisher": "orkestri",
+      "description": "A warm paper theme: sepia surfaces, brown ink, a sienna accent.",
+      "kinds": [
+        "contributions"
+      ],
+      "permissions": [],
+      "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-19/orkestri.sepia-1.0.0.zip",
+      "size": 5841,
+      "sha256": "8667242f32e56614d8b2bc26a422e8d43a2a77a72125d91471b40894bc0bee15",
+      "signature": "/hi7ym9tICQBvrYQd52EFa0jgkguGPCx++U+9rma6wpFU0HrkT5QhCpDlBzhQtggc52eBBrXU/GTXCiShOmuCw=="
+    },
+    {
+      "id": "orkestri.vscode-web",
+      "name": "VS Code (web)",
+      "version": "0.1.0",
+      "publisher": "orkestri",
+      "description": "The installed VS Code (or VSCodium) as a web app in a card, through `code serve-web`. The first start downloads the VS Code server.",
+      "kinds": [
+        "app"
+      ],
+      "permissions": [
+        "process",
+        "localhost",
+        "network",
+        "files"
+      ],
+      "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-19/orkestri.vscode-web-0.1.0.zip",
+      "size": 8018,
+      "sha256": "edafcd7465bd9e0f5947d7e6317a97da7c4a7d0c99bc5acf8431625df4d773ff",
+      "signature": "6L9h+rSLopWbxnGy73n8x7bBP8MkoDj1eghMawai9IsD27HOm92BOG3JGWi6cBxAwuLmvpnADF1FhJKT/Go4Bg=="
+    }
+  ]
+}

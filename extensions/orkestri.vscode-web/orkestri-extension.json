@@ -1,0 +1,25 @@
+{
+  "id": "orkestri.vscode-web",
+  "name": "VS Code (web)",
+  "version": "0.1.0",
+  "publisher": "orkestri",
+  "description": "The installed VS Code (or VSCodium) as a web app in a card, through `code serve-web`. The first start downloads the VS Code server.",
+  "minAppVersion": "0.1.0",
+  "kinds": ["app"],
+  "permissions": ["process", "localhost", "network", "files"],
+  "contributes": {
+    "apps": [
+      {
+        "id": "editor",
+        "name": "VS Code",
+        "command": "code.cmd",
+        "args": ["serve-web", "--host", "127.0.0.1", "--port", "${port}", "--connection-token", "${token}", "--accept-server-license-terms",
+          "--disable-telemetry", "--server-data-dir", "${dataPath}/server", "--cli-data-dir", "${dataPath}/cli"],
+        "port": "auto",
+        "health": "/",
+        "path": "/?tkn=${token}",
+        "startTimeoutMs": 240000
+      }
+    ]
+  }
+}

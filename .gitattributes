@@ -1,0 +1,2 @@
+# Bytes are signed: never convert line endings.
+* -text

@@ -1,0 +1,47 @@
+{
+  "id": "orkestri.sepia",
+  "name": "Orkestri Sépia",
+  "version": "1.0.0",
+  "publisher": "orkestri",
+  "description": "A warm paper theme: sepia surfaces, brown ink, a sienna accent.",
+  "minAppVersion": "0.1.0",
+  "kinds": ["contributions"],
+  "permissions": [],
+  "contributes": {
+    "themes": [
+      {
+        "id": "sepia",
+        "label": "Sépia",
+        "base": "light",
+        "colors": {
+          "background": "#f4ecd8",
+          "canvas_bg": "#fbf6ea",
+          "grid_line": "#5b432414",
+          "bg": "#fffaf0",
+          "bg_elevated": "#efe4cc",
+          "bg_hover": "#5b43240f",
+          "bg_active": "#5b43241a",
+          "fg": "#3b2f22",
+          "fg_muted": "#3b2f2299",
+          "fg_subtle": "#3b2f224d",
+          "border": "#5b432426",
+          "border_strong": "#5b432433",
+          "accent": "#a0522d",
+          "accent_soft": "#a0522d26",
+          "sidebar_bg": "#e9dcc0c7",
+          "sidebar_fg": "#3b2f22",
+          "sidebar_hover": "#5b43240f",
+          "sidebar_active": "#5b43241c",
+          "sidebar_border": "#5b43241f",
+          "rope": "#5b432455",
+          "terminal_paper": "#fbf6ea",
+          "glass_rgb": "#fbf6ea",
+          "icon": "#3b2f22d9",
+          "icon_soft": "#3b2f22cc",
+          "icon_softer": "#3b2f22b3",
+          "paper": "#f4ecd8"
+        }
+      }
+    ]
+  }
+}

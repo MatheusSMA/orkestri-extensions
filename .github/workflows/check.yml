@@ -1,0 +1,36 @@
+name: check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Tests of the checker
+        run: node --test tools/
+      - name: Check the registry
+        if: github.event_name == 'push'
+        run: node tools/registry.mjs check
+      # A pull request is checked by the checker of its base branch, so it cannot loosen the rules it is checked by.
+      - name: Check the pull request
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          REVIEWED: ${{ contains(github.event.pull_request.labels.*.name, 'permissions-reviewed') }}
+        run: |
+          git show "$BASE:tools/registry.mjs" > "$RUNNER_TEMP/registry.mjs"
+          node "$RUNNER_TEMP/registry.mjs" check
