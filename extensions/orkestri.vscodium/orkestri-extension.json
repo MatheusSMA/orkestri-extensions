@@ -1,12 +1,14 @@
 {
   "id": "orkestri.vscodium",
   "name": "VSCodium",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publisher": "orkestri",
-  "description": "VSCodium, the open-source build of VS Code (MIT), as its own window inside a card: no server. The first start downloads the portable VSCodium 1.143.17232 for Windows x64 (221 MB) from its GitHub release, checked against the pinned sha256.",
+  "description": "VSCodium, the open-source build of VS Code (MIT), as its own window inside a card, one per card; linked terminals drive it (orkestri code). Installing it downloads the portable VSCodium 1.143.17232 for Windows x64 (221 MB) from its GitHub release, checked against the pinned sha256.",
   "minAppVersion": "0.1.0",
+  "icon": "icon.png",
   "kinds": ["app"],
   "permissions": ["process", "network", "files"],
+  "agents": { "manual": "AGENTS.md" },
   "contributes": {
     "apps": [
       {
@@ -21,10 +23,17 @@
           "version": "1.143.17232"
         },
         "command": "${appPath}/VSCodium.exe",
-        "args": ["--disable-features=CalculateNativeWinOcclusion"],
-        "env": { "VSCODE_PORTABLE": "${dataPath}" },
+        "args": ["--disable-features=CalculateNativeWinOcclusion", "--extensions-dir", "${dataPath}/extensions"],
+        "env": { "VSCODE_PORTABLE": "${instancePath}" },
         "defaults": "defaults",
-        "openFolder": ["--reuse-window", "${folder}"]
+        "openFolder": ["--reuse-window", "${folder}"],
+        "setup": [
+          {
+            "command": "${appPath}/VSCodium.exe",
+            "args": ["${appPath}/resources/app/out/cli.js", "--extensions-dir", "${dataPath}/extensions", "--install-extension", "${extensionPath}/bridge.vsix", "--force"],
+            "env": { "ELECTRON_RUN_AS_NODE": "1", "VSCODE_PORTABLE": "${dataPath}" }
+          }
+        ]
       }
     ]
   }

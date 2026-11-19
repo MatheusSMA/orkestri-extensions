@@ -1,12 +1,14 @@
 {
   "id": "orkestri.sepia",
   "name": "Orkestri Sépia",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "orkestri",
   "description": "A warm paper theme: sepia surfaces, brown ink, a sienna accent.",
   "minAppVersion": "0.1.0",
+  "icon": "icon.png",
   "kinds": ["contributions"],
   "permissions": [],
+  "agents": false,
   "contributes": {
     "themes": [
       {

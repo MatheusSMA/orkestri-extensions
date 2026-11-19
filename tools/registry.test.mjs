@@ -1,14 +1,17 @@
 // node --test tools/registry.test.mjs: the rules of registry.mjs on hand-made cases.
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { surprises, unzip, validate } from './registry.mjs';
+import { iconOf, surprises, unzip, validate } from './registry.mjs';
 
-const theme = { id: 'orkestri.sepia', name: 'Sépia', version: '1.0.0', publisher: 'orkestri', kinds: ['contributions'],
+const theme = { id: 'orkestri.sepia', name: 'Sépia', version: '1.0.0', publisher: 'orkestri', kinds: ['contributions'], icon: 'icon.png', agents: false,
   contributes: { themes: [{ id: 'sepia', label: 'Sépia', base: 'light', colors: { background: '#f4ecd8', accent: '#a0522d' } }],
     terminalPresets: [{ id: 'py', name: 'Python', command: 'python' }], prompts: [{ name: 'Review', file: 'prompts/review.md' }] } };
-const app = { id: 'orkestri.files', name: 'Files', version: '0.1.0', publisher: 'orkestri', kinds: ['app'], permissions: ['process', 'localhost'],
-  contributes: { apps: [{ id: 'server', name: 'Server', command: 'python', args: ['-m', 'http.server', '${port}', '--bind', '127.0.0.1'], port: 'auto', health: '/' }] } };
-const files = new Map([['prompts/review.md', Buffer.from('Review the diff.')]]);
+const app = { id: 'orkestri.files', name: 'Files', version: '0.1.0', publisher: 'orkestri', kinds: ['app'], permissions: ['process', 'localhost'], icon: 'folder-open', agents: false,
+  contributes: { apps: [{ id: 'server', name: 'Server', icon: 'folder-open', command: 'python', args: ['-m', 'http.server', '${port}', '--bind', '127.0.0.1'], port: 'auto', health: '/' }] } };
+const PNG = Buffer.from('89504e470d0a1a0a', 'hex');
+const files = new Map([['prompts/review.md', Buffer.from('Review the diff.')], ['icon.png', Buffer.concat([PNG, Buffer.from('rest')])],
+  ['logo.svg', Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>')], ['big.png', Buffer.concat([PNG, Buffer.alloc(64 << 10)])],
+  ['AGENTS.md', Buffer.from('`orkestri code "X" read`')], ['long.md', Buffer.alloc(4097, 'x')]]);
 
 // A zip of stored (uncompressed) entries; `link` makes an entry a symbolic link.
 function zip(entries) {
@@ -61,13 +64,30 @@ test('manifest rules', () => {
   refuses({ contributes: { prompts: [{ name: 'X', file: 'prompts/none.md' }] } }, 'missing');
   refuses({ contributes: { roles: [] } }, 'not supported');
   refuses({ permissions: ['process'] }, '"localhost"', app);
-  refuses({ contributes: { apps: [{ id: 's', name: 'S', command: 'x', port: 80 }] } }, 'port', app);
+  refuses({ contributes: { apps: [{ id: 's', name: 'S', icon: 'x', command: 'x', port: 80 }] } }, 'port', app);
+  // The icon, required here (the app also takes a package made before it): a glyph name or a PNG or SVG of the package.
+  refuses({ icon: undefined }, 'icon is required');
+  refuses({ icon: 'missing.png' }, 'missing');
+  refuses({ icon: 'prompts/review.md' }, 'PNG or SVG');
+  refuses({ icon: 'big.png' }, 'up to 64 KB');
+  refuses({ icon: '../icon.png' }, 'inside');
+  refuses({ contributes: { apps: [{ ...app.contributes.apps[0], icon: undefined }] } }, 'glyph name', app);
+  // Whether it works with the agents, required: false, or the manual they get.
+  validate({ ...theme, agents: { manual: 'AGENTS.md' } }, files);
+  refuses({ agents: undefined }, 'agents is required');
+  for (const agents of [true, {}, 'AGENTS.md', { manual: 'AGENTS.md', extra: 1 }]) refuses({ agents }, 'agents is required');
+  refuses({ agents: { manual: 'none.md' } }, 'missing');
+  refuses({ agents: { manual: '../AGENTS.md' } }, 'inside');
+  refuses({ agents: { manual: 'long.md' } }, '4096');
+  assert.equal(iconOf(app, files), 'folder-open');
+  assert.equal(iconOf(theme, files), 'data:image/png;base64,iVBORw0KGgpyZXN0');
+  assert.ok(iconOf({ icon: 'logo.svg' }, files).startsWith('data:image/svg+xml;base64,'));
 });
 
 const sha = 'a'.repeat(64);
 const editor = { id: 'vscodium', name: 'VSCodium', icon: 'code', window: true, command: '${appPath}/VSCodium.exe', defaults: 'defaults', openFolder: ['--reuse-window', '${folder}'],
   download: { url: 'https://github.com/VSCodium/vscodium/releases/download/1/v.zip', sha256: sha, size: 10, version: '1.143.17232' } };
-const window = { id: 'orkestri.vscodium', name: 'VSCodium', version: '1.0.0', publisher: 'orkestri', kinds: ['app'], permissions: ['process', 'network', 'files'],
+const window = { id: 'orkestri.vscodium', name: 'VSCodium', version: '1.0.0', publisher: 'orkestri', kinds: ['app'], permissions: ['process', 'network', 'files'], icon: 'code', agents: false,
   contributes: { apps: [editor] } };
 const windowFiles = new Map([['defaults/user-data/User/settings.json', Buffer.from('{}')]]);
 
@@ -87,6 +107,12 @@ test('window apps: no server, a pinned download', () => {
   refuses({ defaults: '../x' }, 'inside');
   refuses({ defaults: 'missing' }, 'folder');
   refuses({ openFolder: '--reuse-window' }, 'openFolder');
+  validate({ ...window, contributes: { apps: [{ ...editor, setup: [{ command: '${appPath}/VSCodium.exe', args: ['--install-extension', 'x.vsix'], env: { A: '1' } }] }] } }, windowFiles);
+  refuses({ setup: [{ command: 'x', cwd: '/' }] }, 'setup');
+  refuses({ setup: [{ args: ['x'] }] }, 'setup');
+  // A new setup step is a new program run: a person reviews it.
+  assert.ok(surprises(window, { ...window, contributes: { apps: [{ ...editor, setup: [{ command: 'x' }] }] } }).some((s) => s.startsWith('app vscodium runs a new command')));
+  assert.ok(!surprises(window, window).some((s) => s.startsWith('app vscodium runs')));
 });
 
 test('packages: paths stay inside, no links', () => {

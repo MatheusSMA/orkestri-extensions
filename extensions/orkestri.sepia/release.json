@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0",
-  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-19/orkestri.sepia-1.0.0.zip",
-  "size": 5841,
-  "sha256": "8667242f32e56614d8b2bc26a422e8d43a2a77a72125d91471b40894bc0bee15",
-  "signature": "/hi7ym9tICQBvrYQd52EFa0jgkguGPCx++U+9rma6wpFU0HrkT5QhCpDlBzhQtggc52eBBrXU/GTXCiShOmuCw=="
+  "version": "1.0.1",
+  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-19c/orkestri.sepia-1.0.1.zip",
+  "size": 5860,
+  "sha256": "194f9047c8b4666991574aabc4072573d856022c13c4be89884080e97a99fdd1",
+  "signature": "Ms+N+R3gQO/GbbQHmrlMrHZMYUW89ImghZvUsmga7weNtdIEC+NDhsZ/DRVCsEImQBs6P3tLcUPA4hC1E44rCA=="
 }

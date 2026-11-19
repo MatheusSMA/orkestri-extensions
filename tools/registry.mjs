@@ -27,7 +27,11 @@ const THEME_TOKENS = [
   'sidebar_active', 'sidebar_border', 'rope', 'terminal_paper', 'note_paper', 'note_ink', 'glass_rgb', 'glass_highlight', 'icon',
   'icon_soft', 'icon_softer', 'paper',
 ];
-const MANIFEST_KEYS = ['id', 'name', 'version', 'publisher', 'description', 'minAppVersion', 'kinds', 'permissions', 'contributes'];
+const MANIFEST_KEYS = ['id', 'name', 'version', 'publisher', 'description', 'minAppVersion', 'kinds', 'permissions', 'contributes', 'icon', 'agents'];
+// An agent manual is short: every agent in Orkestri gets it in its skill.
+const MAX_MANUAL = 4096;
+// The largest icon file a manifest may name: the index carries it (a data: address), signed with the rest.
+const MAX_MANIFEST_ICON = 64 << 10;
 const RELEASE_KEYS = ['version', 'package', 'size', 'sha256', 'signature'];
 const FOLDER_FILES = [MANIFEST, 'README.md', 'icon.png', 'release.json', 'CHANGELOG.md'];
 const DATA_FILE = /\.(json|md|png|svg|txt)$/i;
@@ -110,6 +114,14 @@ function validate(m, files) {
   const permissions = list('permissions', PERMISSIONS);
   if (!kinds.length) fail('kinds must name at least one kind');
   if (kinds.includes('plugin')) fail('plugin extensions (WebAssembly) are not supported yet');
+  iconOf(m, files);
+  // Whether it works with the agents, said by every extension; if it does, the manual they get (a file of the package).
+  if (m.agents !== false) {
+    const manual = isObject(m.agents) && Object.keys(m.agents).join() === 'manual' && typeof m.agents.manual === 'string' ? m.agents.manual
+      : fail('agents is required: false, or { "manual": "<file>" } when agents can use the extension');
+    const text = files.get(inside(manual)) ?? fail(`agents.manual: ${manual} is missing`);
+    if (text.length > MAX_MANUAL || !utf8(text)) fail(`agents.manual must be UTF-8 text up to ${MAX_MANUAL} bytes`);
+  }
   if ('contributes' in m && !isObject(m.contributes)) fail('contributes must be an object');
   for (const [key, items] of Object.entries(m.contributes ?? {})) {
     if (!['themes', 'terminalPresets', 'prompts', 'apps'].includes(key)) fail(`contributes.${key} is not supported yet`);
@@ -151,7 +163,7 @@ function validate(m, files) {
           if (!validDownload(item.download)) fail('contributes.apps: download needs url (https), sha256 (64 lower-case hex digits), size and version');
           if (!permissions.includes('network')) fail('a download needs the permission "network"');
         }
-        if (has('icon') && !(typeof item.icon === 'string' && word(item.icon))) fail('contributes.apps: icon must be a glyph name');
+        if (!(typeof item.icon === 'string' && word(item.icon))) fail('contributes.apps: icon must be a glyph name (the canvas menu and the card show it)');
         if (has('defaults')) {
           const folder = inside(t('defaults'));
           if (![...files.keys()].some((f) => f.startsWith(`${folder}/`))) fail('contributes.apps: defaults must be a folder of the extension');
@@ -161,11 +173,28 @@ function validate(m, files) {
         const port = item.port;
         if (!(port === undefined || port === null || port === 'auto' || (Number.isInteger(port) && port >= 1024 && port <= 65535))) fail('contributes.apps: port must be "auto" or 1024..65535');
         for (const k of ['health', 'path']) if (has(k) && !t(k).startsWith('/')) fail(`contributes.apps: ${k} must start with /`);
+        // Commands run once when it is installed, after its download.
+        const step = (c) => isObject(c) && Object.keys(c).every((k) => ['command', 'args', 'env'].includes(k)) && typeof c.command === 'string' && c.command.trim() && bytes(c.command) <= 2000
+          && (!('args' in c) || (Array.isArray(c.args) && c.args.every((a) => typeof a === 'string'))) && (!('env' in c) || (isObject(c.env) && Object.values(c.env).every((v) => typeof v === 'string')));
+        if (has('setup') && !(Array.isArray(item.setup) && item.setup.every(step))) fail('contributes.apps: setup must be a list of { command, args, env }');
         const timeout = item.startTimeoutMs;
         if (has('startTimeoutMs') && !(Number.isInteger(timeout) && timeout >= 0 && timeout <= 300000)) fail('contributes.apps: startTimeoutMs must be at most 300000');
       }
     }
   }
+}
+
+// The extension's `icon`, required: a Lucide glyph name as is, or a PNG or SVG file of the package as the data: address
+// the index carries. The app accepts a package without it (made before the rule); the registry does not.
+function iconOf(m, files) {
+  if (typeof m.icon !== 'string') fail('icon is required: a Lucide glyph name, or a PNG or SVG file of the package');
+  if (word(m.icon)) return m.icon;
+  const file = inside(m.icon);
+  const data = files.get(file) ?? fail(`icon: ${file} is missing`);
+  const svg = /\.svg$/i.test(file);
+  const kind = svg ? utf8(data) && data.toString('utf8').includes('<svg') : /\.png$/i.test(file) && data.subarray(0, 8).equals(PNG);
+  if (!kind || data.length > MAX_MANIFEST_ICON) fail('icon must be a glyph name, or a PNG or SVG file of the package up to 64 KB');
+  return `data:image/${svg ? 'svg+xml' : 'png'};base64,${data.toString('base64')}`;
 }
 
 // An app's `download`: the archive of the program it runs, pinned (https, sha256, size), its version a folder name.
@@ -280,7 +309,7 @@ async function checkExtension(id, pubs, packages) {
     const code = [...files.keys()].find((f) => !DATA_FILE.test(f));
     if (code) fail(`a contributions package holds only data files (json, md, png, svg, txt): ${code}`);
   }
-  return { manifest: m, release: r };
+  return { manifest: m, release: r, icon: iconOf(m, files) };
 }
 
 // What a person must look at before a merge: new permissions, network, new programs, servers beyond 127.0.0.1.
@@ -289,7 +318,7 @@ function surprises(old, m) {
   const before = old?.permissions ?? [];
   for (const p of m.permissions ?? []) if (!before.includes(p)) out.push(`asks for a new permission: ${p}`);
   if ((m.permissions ?? []).includes('network')) out.push('can reach the internet (network)');
-  const run = (a) => JSON.stringify([a.command, a.args ?? [], a.env ?? {}, a.openFolder ?? []]);
+  const run = (a) => JSON.stringify([a.command, a.args ?? [], a.env ?? {}, a.openFolder ?? [], a.setup ?? []]);
   const apps = new Map((old?.contributes?.apps ?? []).map((a) => [a.id, a]));
   for (const a of m.contributes?.apps ?? []) {
     const was = apps.get(a.id);
@@ -348,12 +377,13 @@ function pullRequest(base, author, pubs, exts, errors, flags) {
   }
 }
 
-function indexText(pubs) {
+// `exts`: what checkAll answered (each extension's icon comes out of its package).
+function indexText(pubs, exts) {
   const extensions = ls('extensions').map((id) => {
     const m = parse(fs.readFileSync(path.join('extensions', id, MANIFEST)), MANIFEST);
     const r = parse(fs.readFileSync(path.join('extensions', id, 'release.json')), 'release.json');
     return { id: m.id, name: m.name, version: m.version, publisher: m.publisher, description: m.description ?? '', kinds: m.kinds,
-      permissions: m.permissions ?? [], package: r.package, size: r.size, sha256: r.sha256, signature: r.signature };
+      permissions: m.permissions ?? [], package: r.package, size: r.size, sha256: r.sha256, signature: r.signature, icon: exts[id]?.icon };
   });
   return JSON.stringify({ version: 1, publishers: pubs, extensions }, null, 2) + '\n';
 }
@@ -383,7 +413,7 @@ async function check(packages) {
   if (process.env.BASE) {
     pullRequest(process.env.BASE, process.env.AUTHOR, pubs, exts, errors, flags);
   } else if (!errors.length) {
-    if (!fs.existsSync('index.json') || fs.readFileSync('index.json', 'utf8') !== indexText(pubs)) errors.push('index.json is not the index of this registry: a maintainer runs `node tools/registry.mjs index <key>`');
+    if (!fs.existsSync('index.json') || fs.readFileSync('index.json', 'utf8') !== indexText(pubs, exts)) errors.push('index.json is not the index of this registry: a maintainer runs `node tools/registry.mjs index <key>`');
     else if (!verifies(REGISTRY_KEY, fs.existsSync('index.json.sig') ? fs.readFileSync('index.json.sig', 'utf8').trim() : '', fs.readFileSync('index.json'))) errors.push('index.json.sig does not verify with the registry key');
   }
   const reviewed = process.env.REVIEWED === 'true';
@@ -433,15 +463,15 @@ async function index(keyFile, packages) {
   const key = privateKey(keyFile);
   if (publicOf(key) !== REGISTRY_KEY) fail('this is not the registry key (the app would refuse what it signs)');
   const errors = [];
-  const { pubs } = await checkAll(packages, errors);
+  const { pubs, exts } = await checkAll(packages, errors);
   if (errors.length) fail(`the registry has problems, nothing written:\n${errors.join('\n')}`);
-  const text = Buffer.from(indexText(pubs));
+  const text = Buffer.from(indexText(pubs, exts));
   fs.writeFileSync('index.json', text);
   fs.writeFileSync('index.json.sig', crypto.sign(null, text, key).toString('base64') + '\n');
   console.log(`index.json: ${JSON.parse(text).extensions.length} extension(s), signed`);
 }
 
-export { validate, unzip, surprises };
+export { iconOf, validate, unzip, surprises };
 
 // The command line, when run (the tests import the rules).
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

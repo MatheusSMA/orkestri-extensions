@@ -1,7 +1,7 @@
 # Orkestri extensions
 
 The registry of Orkestri extensions: themes, terminal presets, prompts and apps. Orkestri reads `index.json` from this
-repository (Extensões › Disponíveis), checks its signature, and installs a package only when its size, sha256 and its
+repository (Loja › Disponíveis, the store), checks its signature, and installs a package only when its size, sha256 and its
 publisher's signature match the index.
 
 | Extension | What it adds |
@@ -57,6 +57,8 @@ unknown key, kind, permission, contribution or colour token is refused, not igno
   "minAppVersion": "0.1.0",
   "kinds": ["contributions"],
   "permissions": [],
+  "icon": "icon.png",
+  "agents": false,
   "contributes": { "themes": [{ "id": "sepia", "label": "Sépia", "base": "light", "colors": { "accent": "#a0522d" } }] }
 }
 ```
@@ -64,6 +66,14 @@ unknown key, kind, permission, contribution or colour token is refused, not igno
 - `id`: `publisher.name`, each part lower-case letters, digits and dashes (at most 40, not starting with a dash);
   `publisher` is its first part, a registered publisher. The folder is named after the id.
 - `name`: 1 to 100 characters; `description`: up to 500; `version` and `minAppVersion`: `x.y.z`.
+- `icon` (required): a PNG or SVG file of the package up to 64 KB (`icon.png`, 128×128, is the usual one), or the
+  name of a Lucide glyph Orkestri knows (`palette`, `code`, `globe`...). The store shows it beside the name and the
+  author; the index carries it (a file as a `data:` address, so the index's signature covers it).
+- `agents` (required): whether the agents in Orkestri's terminals can use the extension. `false` when it is for the
+  person only (a theme, a preset); `{ "manual": "AGENTS.md" }` when agents can use it: a UTF-8 file of the package, at
+  most 4 KB, their manual. Write it for an agent: what it can do with the extension and how it reaches it (how it shows
+  in `orkestri list`, each command with one short example, what it answers). Orkestri adds the manual of every
+  installed, enabled extension to the skill its agents read, so keep it short.
 - `kinds`: `contributions` (data only, no code runs) and/or `app` (a local program shown in a card). `plugin` is not
   supported yet.
 - `contributes`:
@@ -73,7 +83,7 @@ unknown key, kind, permission, contribution or colour token is refused, not igno
 | `themes` | contributions | `id`, `label`, `base` (`light` or `dark`), `colors`: tokens over the base, each `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa` |
 | `terminalPresets` | contributions | `id`, `name`, `command`, optional `icon` |
 | `prompts` | contributions | `name`, optional `description`, `file` (a UTF-8 file inside the package, up to 256 KB) |
-| `apps` | app | `id`, `name`, `command`, `args`, optional `env`, `cwd`, `port` (`"auto"` or 1024–65535), `health` and `path` (start with `/`), `startTimeoutMs` (at most 300000); for a window app also `window`, `download`, `icon`, `defaults`, `openFolder` (below) |
+| `apps` | app | `id`, `name`, `command`, `args`, optional `env`, `cwd`, `port` (`"auto"` or 1024–65535), `health` and `path` (start with `/`), `startTimeoutMs` (at most 300000), `icon` (required: the Lucide glyph of its row in the canvas's Adicionar menu and of its card), `setup` (below); for a window app also `window`, `download`, `defaults`, `openFolder` (below) |
 
 Theme tokens: `background`, `canvas_bg`, `grid_line`, `bg`, `bg_elevated`, `bg_hover`, `bg_active`, `fg`, `fg_muted`,
 `fg_subtle`, `border`, `border_strong`, `accent`, `accent_soft`, `destructive`, `warning`, `success`, `sidebar_bg`,
@@ -84,17 +94,22 @@ An app's `command`, `args`, `env` and `cwd` may use `${port}` (a free port of 12
 between starts), `${extensionPath}` and `${dataPath}` (the extension's own data folder). The program runs with no
 console window and ends with the extension or with Orkestri; it is ready when its `health` path answers on its port.
 
+`setup`: a list of `{ "command", "args", "env" }` run in order, with no console window, as soon as the extension is
+installed or enabled (after its `download`), each required to succeed (`${extensionPath}`, `${dataPath}`, `${appPath}`).
+They run again only when they, the program or the extension's version change. Use it for what the program needs once
+(VSCodium installs its bridge extension with its own command line, headless).
+
 **Window apps** (`"window": true`) show the program's own window in a card instead of a web page: no port, no server,
 and they need only `process`. Orkestri catches the window as it is created, strips its frame and keeps it over the
 card. Their extra keys:
 
 - `download`: `{ "url": "https://…", "sha256": "<64 lower-case hex>", "size": <bytes>, "version": "<folder name>" }`,
-  the program's archive (zip), fetched on the first start, checked against its size and sha256 and unpacked into the
+  the program's archive (zip), fetched when the extension is installed, checked against its size and sha256 and unpacked into the
   profile's `apps\<app id>\<version>`; `${appPath}` is that folder. Needs `network`. The package itself never carries
   the program.
-- `icon`: the glyph of the card's header (a Lucide name Orkestri knows, such as `code`).
-- `defaults`: a folder of the package whose files are copied into `${dataPath}` when they are not there yet (first
-  settings; a person's own changes stay).
+- `defaults`: a folder of the package whose files are copied into `${instancePath}` when they are not there yet (first
+  settings; a person's own changes stay). Each card runs its own program, started with its own folder
+  `${instancePath}` (`${dataPath}\instances\<card>`): point the program's data there to keep two cards apart.
 - `openFolder`: the arguments that open a folder in the running program (`${folder}`: the workspace's working folder),
   run as a second start of `command`; the card's "Abrir pasta".
 
@@ -116,7 +131,7 @@ maintainer. CI marks a pull request for review, and fails it until a maintainer 
 when it:
 
 - asks for a permission the previous version did not have, or for `network` at all;
-- adds or changes an app's command, arguments or environment, or the program its `download` fetches;
+- adds or changes an app's command, arguments, environment or `setup`, or the program its `download` fetches;
 - may serve on anything but 127.0.0.1 (`0.0.0.0`, `::`, another host after `--host`, `--bind` and the like);
 - changes a publisher's key or GitHub account, removes something, or touches files outside `extensions/` and
   `publishers/`.
@@ -137,7 +152,8 @@ Two signatures, both ed25519 over exact bytes:
 it is checked by) and on every push:
 
 - each publisher file: the key is a 32-byte ed25519 public key, the login a GitHub login;
-- each extension: the manifest rules above, the folder named after the id, `icon.png` a PNG up to 256 KB,
+- each extension: the manifest rules above (its `icon`, each app's `icon` and `agents` included), the folder named after the id,
+  `icon.png` a PNG up to 256 KB,
   `release.json` complete and its version the manifest's; the package downloaded, its size and sha256 as pinned, its
   signature verified with the publisher's key; the zip's paths, links and sizes; the manifest in the zip byte for byte
   the one in the folder;
