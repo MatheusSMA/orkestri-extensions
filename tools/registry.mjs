@@ -160,7 +160,9 @@ function validate(m, files) {
         if (window && !permissions.includes('process')) fail('a window app needs the permission "process"');
         if (!window && (!permissions.includes('process') || !permissions.includes('localhost'))) fail('an app needs the permissions "process" and "localhost"');
         if (has('download')) {
-          if (!validDownload(item.download)) fail('contributes.apps: download needs url (https), sha256 (64 lower-case hex digits), size and version');
+          // One file, or a list of up to 4 whose first names the version (Zed: its installer and the unpacker that opens it).
+          const list = Array.isArray(item.download) ? item.download : [item.download];
+          if (!(list.length >= 1 && list.length <= 4 && list.every(validDownload))) fail('contributes.apps: download needs url (https, ending in a file name), sha256 (64 lower-case hex digits), size and version, or a list of up to 4 of them');
           if (!permissions.includes('network')) fail('a download needs the permission "network"');
         }
         if (!(typeof item.icon === 'string' && word(item.icon))) fail('contributes.apps: icon must be a glyph name (the canvas menu and the card show it)');
@@ -177,6 +179,20 @@ function validate(m, files) {
         const step = (c) => isObject(c) && Object.keys(c).every((k) => ['command', 'args', 'env'].includes(k)) && typeof c.command === 'string' && c.command.trim() && bytes(c.command) <= 2000
           && (!('args' in c) || (Array.isArray(c.args) && c.args.every((a) => typeof a === 'string'))) && (!('env' in c) || (isObject(c.env) && Object.values(c.env).every((v) => typeof v === 'string')));
         if (has('setup') && !(Array.isArray(item.setup) && item.setup.every(step))) fail('contributes.apps: setup must be a list of { command, args, env }');
+        // A window app with no bridge (Zed): the settings file of the card's folder it reads live and its font sizes at
+        // zoom 1 (Orkestri scales them with the canvas); the key its defaults bind to its "go to file" prompt.
+        if (has('zoom')) {
+          const z = item.zoom;
+          const file = isObject(z) && typeof z.file === 'string' && !z.file.includes(':') && !/^[\\/]/.test(z.file) && !z.file.split(/[\\/]/).some((p) => !p || p === '.' || p === '..');
+          const sizes = isObject(z) && isObject(z.sizes) && Object.keys(z.sizes).length >= 1 && Object.keys(z.sizes).length <= 8
+            && Object.entries(z.sizes).every(([k, v]) => word(k.replaceAll('_', '-')) && typeof v === 'number' && v >= 4 && v <= 100);
+          if (!window || Object.keys(z ?? {}).length !== 2 || !file || !sizes) fail('contributes.apps: zoom must be { file (a relative path), sizes (1 to 8 names to sizes 4..100) } of a window app');
+        }
+        if (has('openFile')) {
+          const o = item.openFile;
+          const n = isObject(o) && typeof o.key === 'string' && /^f\d+$/.test(o.key) ? Number(o.key.slice(1)) : 0;
+          if (!window || Object.keys(o ?? {}).length !== 1 || !(n >= 13 && n <= 24)) fail('contributes.apps: openFile must be { key: "f13" .. "f24" } of a window app');
+        }
         const timeout = item.startTimeoutMs;
         if (has('startTimeoutMs') && !(Number.isInteger(timeout) && timeout >= 0 && timeout <= 300000)) fail('contributes.apps: startTimeoutMs must be at most 300000');
       }
@@ -197,8 +213,13 @@ function iconOf(m, files) {
   return `data:image/${svg ? 'svg+xml' : 'png'};base64,${data.toString('base64')}`;
 }
 
-// An app's `download`: the archive of the program it runs, pinned (https, sha256, size), its version a folder name.
-const validDownload = (d) => isObject(d) && typeof d.url === 'string' && d.url.startsWith('https://') && d.url.length <= 2000
+// A file of an app's `download`: pinned (https, sha256, size), a plain file name at the end of its address, its version a
+// folder name.
+const fileName = (url) => {
+  const name = url.split(/[?#]/)[0].split('/').pop();
+  return /^[A-Za-z0-9._-]{1,100}$/.test(name) && !name.startsWith('.') ? name : null;
+};
+const validDownload = (d) => isObject(d) && typeof d.url === 'string' && d.url.startsWith('https://') && d.url.length <= 2000 && fileName(d.url) !== null
   && typeof d.sha256 === 'string' && /^[0-9a-f]{64}$/.test(d.sha256) && Number.isInteger(d.size) && d.size > 0
   && typeof d.version === 'string' && /^[A-Za-z0-9.-]{1,40}$/.test(d.version) && !d.version.startsWith('.');
 
@@ -323,7 +344,9 @@ function surprises(old, m) {
   for (const a of m.contributes?.apps ?? []) {
     const was = apps.get(a.id);
     if (!was || run(was) !== run(a)) out.push(`app ${a.id} runs a new command: ${[a.command, ...(a.args ?? [])].join(' ')}`);
-    if (a.download && JSON.stringify(was?.download) !== JSON.stringify(a.download)) out.push(`app ${a.id} downloads a program: ${a.download.url} (sha256 ${a.download.sha256})`);
+    if (a.download && JSON.stringify(was?.download) !== JSON.stringify(a.download)) {
+      for (const d of [a.download].flat()) out.push(`app ${a.id} downloads a program: ${d.url} (sha256 ${d.sha256})`);
+    }
     if (!local(a.args ?? [])) out.push(`app ${a.id} may serve on more than 127.0.0.1`);
   }
   return out;

@@ -113,6 +113,19 @@ test('window apps: no server, a pinned download', () => {
   // A new setup step is a new program run: a person reviews it.
   assert.ok(surprises(window, { ...window, contributes: { apps: [{ ...editor, setup: [{ command: 'x' }] }] } }).some((s) => s.startsWith('app vscodium runs a new command')));
   assert.ok(!surprises(window, window).some((s) => s.startsWith('app vscodium runs')));
+  // Zed: a list of downloads, the zoom of a settings file, the key of a "go to file" prompt; each file is reviewed.
+  const file = (name) => ({ url: `https://x/${name}`, sha256: sha, size: 10, version: '1.0.0' });
+  const zed = { download: [file('Zed-x86_64.exe'), file('innounp-2.zip')], zoom: { file: 'config/settings.json', sizes: { ui_font_size: 16, buffer_font_size: 15 } }, openFile: { key: 'f24' } };
+  validate({ ...window, contributes: { apps: [{ ...editor, ...zed }] } }, windowFiles);
+  refuses({ download: [] }, 'download');
+  refuses({ download: ['a.zip', 'b.zip', 'c.zip', 'd.zip', 'e.zip'].map(file) }, 'download');
+  refuses({ download: [file('Zed.exe'), file('')] }, 'download');
+  for (const zoom of [{ file: '../s.json', sizes: { a: 16 } }, { file: 'C:/s.json', sizes: { a: 16 } }, { file: 's.json', sizes: {} }, { file: 's.json', sizes: { a: 2 } }, { file: 's.json', sizes: { a: 16 }, x: 1 }]) {
+    refuses({ zoom }, 'zoom');
+  }
+  for (const openFile of [{ key: 'f12' }, { key: 'ctrl-p' }, { key: 'f24', x: 1 }, 'f24']) refuses({ openFile }, 'openFile');
+  assert.deepEqual(surprises(null, { ...window, contributes: { apps: [{ ...editor, ...zed }] } }).filter((s) => s.includes('downloads')),
+    ['app vscodium downloads a program: https://x/Zed-x86_64.exe (sha256 ' + sha + ')', 'app vscodium downloads a program: https://x/innounp-2.zip (sha256 ' + sha + ')']);
 });
 
 test('packages: paths stay inside, no links', () => {

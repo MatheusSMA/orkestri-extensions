@@ -1,0 +1,94 @@
+{
+  "id": "orkestri.zed",
+  "name": "Zed",
+  "version": "1.0.0",
+  "publisher": "orkestri",
+  "description": "Zed, the open-source code editor written in Rust, as its own window inside a card, one per card. Installing it downloads the official Zed 1.29.2 for Windows x64 (62 MB, its installer from Zed's GitHub release, signed by Zed Industries and checked against the pinned sha256) and innounp, which unpacks it into Orkestri's own folder: nothing is installed on the computer.",
+  "minAppVersion": "0.1.3",
+  "icon": "icon.png",
+  "kinds": [
+    "app"
+  ],
+  "permissions": [
+    "process",
+    "network",
+    "files"
+  ],
+  "agents": {
+    "manual": "AGENTS.md"
+  },
+  "contributes": {
+    "apps": [
+      {
+        "id": "zed",
+        "name": "Zed",
+        "icon": "code",
+        "window": true,
+        "download": [
+          {
+            "url": "https://github.com/zed-industries/zed/releases/download/v1.29.2/Zed-x86_64.exe",
+            "sha256": "30cd0aef8a8d451f54613b3ee8d8321c06acb2ef2110b4debaa7931f245c8399",
+            "size": 65378040,
+            "version": "1.29.2"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/jrathlev/InnoUnpacker-Windows-GUI/5410e03e6ad409ac982ca9cb2365db815a8b53fb/innounp-2/bin/innounp-2.zip",
+            "sha256": "078ddb005aa17e669f0b5545980bff92200f7401418174172dca0d75f9e5d8f0",
+            "size": 621366,
+            "version": "2.71.4"
+          }
+        ],
+        "setup": [
+          {
+            "command": "${appPath}/innounp.exe",
+            "args": [
+              "-x",
+              "-b",
+              "-q",
+              "-y",
+              "-h",
+              "-d${appPath}/zed",
+              "-c{code_GetInstallDir}",
+              "${appPath}/Zed-x86_64.exe",
+              "{code_GetInstallDir}\\*"
+            ]
+          },
+          {
+            "command": "${appPath}/innounp.exe",
+            "args": [
+              "-x",
+              "-b",
+              "-q",
+              "-y",
+              "-h",
+              "-d${appPath}/zed",
+              "-c{app}",
+              "${appPath}/Zed-x86_64.exe",
+              "{app}\\amd_ags_x64.dll"
+            ]
+          }
+        ],
+        "command": "${appPath}/zed/Zed.exe",
+        "args": [
+          "--user-data-dir",
+          "${instancePath}",
+          "${folder}"
+        ],
+        "env": {
+          "ZED_STATELESS": "1"
+        },
+        "defaults": "defaults",
+        "zoom": {
+          "file": "config/settings.json",
+          "sizes": {
+            "ui_font_size": 16,
+            "buffer_font_size": 15
+          }
+        },
+        "openFile": {
+          "key": "f24"
+        }
+      }
+    ]
+  }
+}
