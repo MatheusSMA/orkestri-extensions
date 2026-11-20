@@ -1,10 +1,10 @@
 {
   "id": "orkestri.warp-oss",
   "name": "Warp (open-source build)",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "publisher": "orkestri",
   "description": "Warp's open-source terminal client as its own window inside a card, one per card, its settings and data in the card's folder; linked terminals type command lines into it. Built by Orkestri from warpdotdev/warp's AGPL source; not made or endorsed by Warp. Installing it downloads that build (169 MB, a release of orkestri-extensions that also holds its source, checked against the pinned sha256). No account needed for the terminal.",
-  "minAppVersion": "0.1.9",
+  "minAppVersion": "0.1.11",
   "icon": "icon.png",
   "kinds": [
     "app"
@@ -38,9 +38,7 @@
         },
         "zoom": {
           "file": "warp/config/settings.toml",
-          "sizes": {
-            "appearance.text.font_size": 13
-          }
+          "percent": "appearance.window.zoom_level"
         },
         "typeRun": true,
         "defaults": "defaults"

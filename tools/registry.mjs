@@ -209,13 +209,18 @@ function validate(m, files) {
         for (const k of ['health', 'path']) if (has(k) && !t(k).startsWith('/')) fail(`contributes.apps: ${k} must start with /`);
         setupRule(key, item);
         // A window app with no bridge (Zed): the settings file of the card's folder it reads live and its font sizes at
-        // zoom 1 (Orkestri scales them with the canvas); the key its defaults bind to its "go to file" prompt.
+        // zoom 1 (Orkestri scales them with the canvas), and/or (BUGS #104, Orkestri 0.1.11) `percent`, the key of the
+        // program's zoom of its whole UI, written as a whole percent (Warp's tab bar does not follow its font size).
         if (has('zoom')) {
           const z = item.zoom;
+          const key = (k) => typeof k === 'string' && k.split('.').every((p) => word(p.replaceAll('_', '-')));
           const file = isObject(z) && typeof z.file === 'string' && !z.file.includes(':') && !/^[\\/]/.test(z.file) && !z.file.split(/[\\/]/).some((p) => !p || p === '.' || p === '..');
           const sizes = isObject(z) && isObject(z.sizes) && Object.keys(z.sizes).length >= 1 && Object.keys(z.sizes).length <= 8
-            && Object.entries(z.sizes).every(([k, v]) => k.split('.').every((p) => word(p.replaceAll('_', '-'))) && typeof v === 'number' && v >= 4 && v <= 100);
-          if (!window || Object.keys(z ?? {}).length !== 2 || !file || !sizes) fail('contributes.apps: zoom must be { file (a relative path), sizes (1 to 8 names to sizes 4..100) } of a window app');
+            && Object.entries(z.sizes).every(([k, v]) => key(k) && typeof v === 'number' && v >= 4 && v <= 100);
+          const known = isObject(z) && Object.keys(z).every((k) => ['file', 'sizes', 'percent'].includes(k));
+          if (!window || !known || !file || ('sizes' in z && !sizes) || ('percent' in z && !key(z.percent)) || !('sizes' in z || 'percent' in z)) {
+            fail('contributes.apps: zoom must be { file (a relative path), sizes (1 to 8 names to sizes 4..100) and/or percent (a name) } of a window app');
+          }
         }
         // Rule (BUGS #94): what drives a package comes with it. Its controller (a program of the package run per op, or
         // "bridge": its own program answers over ORKESTRI_BRIDGE) answers the agents' `orkestri code` ops; Orkestri
@@ -226,8 +231,9 @@ function validate(m, files) {
         // controller's `write` or typed (`typeRun`), and its manual a section on Orkestri inside it.
         if (has('kind')) {
           if (item.kind !== 'terminal' || !window || (!has('controller') && item.typeRun !== true)) fail('contributes.apps: kind must be "terminal", of a window app with a controller or typeRun (how an ask reaches it)');
-          if (!/^## Orkestri inside it\s*$/m.test(manualText) || !manualText.includes('orkestri list') || !manualText.includes('orkestri ask')) {
-            fail('contributes.apps: a terminal needs its agents manual\'s "## Orkestri inside it" section, naming orkestri list and orkestri ask (how a message reaches it, whether its screen is read)');
+          // Rule (BUGS #108): it calls its connections too (an agent in it asks and answers), not only receives.
+          if (!/^## Orkestri inside it\s*$/m.test(manualText) || !['orkestri list', 'orkestri ask', 'orkestri reply'].every((c) => manualText.includes(c))) {
+            fail('contributes.apps: a terminal needs its agents manual\'s "## Orkestri inside it" section, naming orkestri list, orkestri ask and orkestri reply (it calls its connections; how a message reaches it, whether its screen is read)');
           }
         }
         if (codeOps && !has('controller') && !has('typeRun')) fail(`contributes.apps: ${t('id')} offers its agents ops (orkestri code): it needs a controller (or only typeRun), what talks to the program comes with the package`);

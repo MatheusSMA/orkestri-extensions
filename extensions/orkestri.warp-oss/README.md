@@ -14,14 +14,18 @@ Warp's open-source terminal client inside an Orkestri card as its own window. Bu
   already past Warp's welcome steps, in a shell session in the profile's home.
 - **No account needed** for the terminal. Warp's AI, Warp Drive and sign-in use Warp's own servers, if the person
   signs in.
-- **Zoom:** the card writes `appearance.text.font_size` into the card's Warp `settings.toml`, which Warp reloads
-  live, so the text follows the canvas zoom, never below 69 % of its size; the other settings in that file stay.
+- **Zoom** (1.1.1, Orkestri 0.1.11): the card writes Warp's own zoom of its whole UI, `appearance.window.zoom_level`,
+  into the card's Warp `settings.toml`, which Warp reloads live, so its text, tab bar and buttons follow the canvas
+  zoom, never below 69 %; the other settings in that file stay. (Until 1.1.0 only the font size followed it, and
+  Warp's tab bar stayed full size in a card zoomed out.)
 - **Agents** (`AGENTS.md`): a linked terminal types a command line into it (`run`). Nothing else is possible from
   outside.
 - **An Orkestri terminal** (`"kind": "terminal"`, 1.1.0): Conectar on its card, linked and listed as a terminal; its
   shell gets Orkestri's environment (the build puts the folder of the `orkestri` command first in PATH again, since
   Warp builds a session's PATH from the registry), so agents inside run `orkestri list`, `ask`, `see`; asks are typed
-  into it (one line, 10 s after it opens); `check` shows nothing (no screen to read).
+  into it (one line, 10 s after it opens); `check` shows nothing (no screen to read). With Orkestri 0.1.11 it calls
+  its connections as a native terminal: the card's `@` tool (or Ctrl Shift 2 with the card selected) types a mention
+  of a linked terminal, note, portal or group into Warp's input, and its Conectar links a group or a region.
 - Closing the card, disabling the extension or closing Orkestri ends Warp and everything it started.
 
 Licence: the Warp client is AGPL-3.0 (its UI crates MIT), © Denver Technologies, Inc. The build is redistributed by

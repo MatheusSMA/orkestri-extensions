@@ -177,7 +177,10 @@ card. Their extra keys:
   everything in one folder).
 - `zoom` (Orkestri 0.1.3): `{ "file": "<relative path in ${instancePath}>", "sizes": { "<key>": <size at zoom 1> } }`,
   a file the program reloads by itself where Orkestri writes the font sizes as the canvas zooms; a `.toml` file holds
-  only the sizes, `"font.size"` under `[font]` (Alacritty imports it).
+  only the sizes, `"font.size"` under `[font]` (Alacritty imports it). Orkestri 0.1.11: `"percent": "<key>"` instead of
+  (or with) `sizes`, the program's own zoom of its whole UI, written as a whole percent (Warp:
+  `"appearance.window.zoom_level"`); zoom everything the program draws, since a font size alone leaves its tab bar and
+  buttons at full size in a card zoomed out.
 - `typeRun: true` (Orkestri 0.1.4): a program with no API (Alacritty on Windows): `run` types the line and Enter into
   its window. The one primitive Orkestri offers for agents; anything else is the package's controller.
 - `kind: "terminal"` (Orkestri 0.1.9): the program is a terminal, and its card a full Orkestri terminal (below).
@@ -219,9 +222,9 @@ holds only data files (`.json`, `.md`, `.png`, `.svg`, `.txt`).
 
 A window app with `"kind": "terminal"` (WezTerm, Alacritty, Warp) is an Orkestri terminal: Conectar and link chips on
 its card, its row in the canvas's **Terminais** menu, linked and listed as a terminal, and the communication skills
-(`orkestri list`, `ask`, `see`, `note`, `reply`) work inside it. CI refuses a terminal without a way in for an ask (its
-`controller` or `typeRun`) or whose `agents` manual lacks a `## Orkestri inside it` section naming `orkestri list` and
-`orkestri ask`. The recipe:
+(`orkestri list`, `ask`, `see`, `note`, `reply`) work inside it: it **calls** its connections, not only connects. CI
+refuses a terminal without a way in for an ask (its `controller` or `typeRun`) or whose `agents` manual lacks a
+`## Orkestri inside it` section naming `orkestri list`, `orkestri ask` and `orkestri reply`. The recipe:
 
 1. **Pass the environment through to the shell.** Orkestri starts the program with `ORKESTRI_PIPE`,
    `ORKESTRI_TERMINAL_ID` (the card), `ORKESTRI_WORKSPACE_ID`, `ORKESTRI_CLI` (the `orkestri` command), PATH with that
@@ -237,6 +240,15 @@ its card, its row in the canvas's **Terminais** menu, linked and listed as a ter
    in each shows the other; a reader in the card gets the native one's `orkestri ask "<card>" "…" --async`.
 
 The full guide is Orkestri's `docs/store.md`, "Terminal plugins".
+
+**Calling the connections from inside it** (Orkestri 0.1.11): the card's `@` tool, or Ctrl Shift 2 with the card
+selected, opens the same TERMINAIS/CONEXÕES picker a native terminal has, and the row chosen goes into the program's
+input as a tag (`<orkestri-canvas-agent name="X" /> `) **with no Enter**, by the same way in as an ask: so a
+controller's `write` sends exactly the text it is given and adds no Enter, and the program takes typed or written text
+at its prompt. **An area**: the card is a member of a group like any card and links to a group (its frame or name
+pill), a drawing or a region with its Conectar; `orkestri list` inside shows `Equipe (group: …)` and `orkestri ask
+"Equipe"` reaches each terminal of it. Check both before submitting: the tag lands in the program's input and nothing
+runs; `orkestri list` inside lists the group linked.
 
 ## Permissions and review
 

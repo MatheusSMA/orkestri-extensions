@@ -1,7 +1,7 @@
 {
-  "version": "1.1.0",
-  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-20-terminals/orkestri.warp-oss-1.1.0.zip",
-  "size": 8829,
-  "sha256": "0b93c6ab3fd05aa94d66c0770d5b7c955849d1fe2eea2b98042822410a43f975",
-  "signature": "NrsouDZChjBj+bcrWj8NXFvSqxrGXrcG+p8pVRu6tW5Qdsh8fGbn5dhCnsciCOPgAiOzB2w111KFmnEET/mwAw=="
+  "version": "1.1.1",
+  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-20-warp-1.1.1/orkestri.warp-oss-1.1.1.zip",
+  "size": 9019,
+  "sha256": "8b2752b15ca6c48164605e5bd8f407d1bc1321657593808bdfd1472ab415ea76",
+  "signature": "sOw7qHX/Fi35EaPGNld52IjTayCn6iRrLy9BvDl6GrzSj4TYxCLpoOOlT3X439xfo5P2GPy9irmSU3qlY945Aw=="
 }
