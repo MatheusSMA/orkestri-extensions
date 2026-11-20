@@ -89,7 +89,7 @@ test('manifest rules', () => {
 });
 
 const sha = 'a'.repeat(64);
-const editor = { id: 'vscodium', name: 'VSCodium', icon: 'code', window: true, command: '${appPath}/VSCodium.exe', defaults: 'defaults', openFolder: ['--reuse-window', '${folder}'],
+const editor = { id: 'vscodium', name: 'VSCodium', icon: 'code', window: true, command: '${appPath}/VSCodium.exe', args: ['${folder}'], defaults: 'defaults', openFolder: ['--reuse-window', '${folder}'],
   download: { url: 'https://github.com/VSCodium/vscodium/releases/download/1/v.zip', sha256: sha, size: 10, version: '1.143.17232' } };
 const window = { id: 'orkestri.vscodium', name: 'VSCodium', version: '1.0.0', publisher: 'orkestri', kinds: ['app'], permissions: ['process', 'network', 'files'], icon: 'code', agents: false,
   contributes: { apps: [editor] } };
@@ -117,9 +117,9 @@ test('window apps: no server, a pinned download', () => {
   // A new setup step is a new program run: a person reviews it.
   assert.ok(surprises(window, { ...window, contributes: { apps: [{ ...editor, setup: [{ command: 'x' }] }] } }).some((s) => s.startsWith('app vscodium runs a new command')));
   assert.ok(!surprises(window, window).some((s) => s.startsWith('app vscodium runs')));
-  // Zed: a list of downloads, the zoom of a settings file, the key of a "go to file" prompt; each file is reviewed.
+  // Zed: a list of downloads, the zoom of a settings file, its controller; each file is reviewed.
   const file = (name) => ({ url: `https://x/${name}`, sha256: sha, size: 10, version: '1.0.0' });
-  const zed = { download: [file('Zed-x86_64.exe'), file('innounp-2.zip')], zoom: { file: 'config/settings.json', sizes: { ui_font_size: 16, buffer_font_size: 15 } }, openFile: { key: 'f24' } };
+  const zed = { download: [file('Zed-x86_64.exe'), file('innounp-2.zip')], zoom: { file: 'config/settings.json', sizes: { ui_font_size: 16, buffer_font_size: 15 } }, controller: { command: '${extensionPath}/controller.exe' } };
   validate({ ...window, contributes: { apps: [{ ...editor, ...zed }] } }, windowFiles);
   refuses({ download: [] }, 'download');
   refuses({ download: ['a.zip', 'b.zip', 'c.zip', 'd.zip', 'e.zip'].map(file) }, 'download');
@@ -127,12 +127,23 @@ test('window apps: no server, a pinned download', () => {
   for (const zoom of [{ file: '../s.json', sizes: { a: 16 } }, { file: 'C:/s.json', sizes: { a: 16 } }, { file: 's.json', sizes: {} }, { file: 's.json', sizes: { a: 2 } }, { file: 's.json', sizes: { a: 16 }, x: 1 }]) {
     refuses({ zoom }, 'zoom');
   }
-  for (const openFile of [{ key: 'f12' }, { key: 'ctrl-p' }, { key: 'f24', x: 1 }, 'f24']) refuses({ openFile }, 'openFile');
-  // WezTerm: an archive unpacked without its wrapping folder, and its own command line.
-  validate({ ...window, contributes: { apps: [{ ...editor, download: { ...file('w.zip'), strip: 1 }, cli: { command: '${appPath}/wezterm.exe', env: { S: '${userProfile}/s-${pid}' }, run: ['cli', '${text}'], read: ['cli', 'get-text'] } }] } }, windowFiles);
+  // WezTerm: an archive unpacked without its wrapping folder; its controller with the env Orkestri fills.
+  validate({ ...window, contributes: { apps: [{ ...editor, download: { ...file('w.zip'), strip: 1 }, controller: { command: '${extensionPath}/controller.exe', env: { S: '${userProfile}/s-${pid}' } } }] } }, windowFiles);
   refuses({ download: { ...file('w.zip'), strip: 4 } }, 'download');
-  for (const cli of [{ command: 'x' }, { command: '', run: ['a'] }, { command: 'x', run: [] }, { command: 'x', run: [1] }, { command: 'x', read: ['a'], cwd: '/' }, { command: 'x', read: ['a'], env: { A: 1 } }]) refuses({ cli }, 'cli');
-  assert.ok(surprises(window, { ...window, contributes: { apps: [{ ...editor, cli: { command: 'x', read: ['y'] } }] } }).some((s) => s.startsWith('app vscodium runs a new command')));
+  // BUGS #94: a controller is "bridge" or a command line; a new one is reviewed.
+  validate({ ...window, contributes: { apps: [{ ...editor, controller: 'bridge' }] } }, windowFiles);
+  for (const controller of ['cli', { args: ['x'] }, { command: '' }, { command: 'x', keep: true }, { command: 'x', env: { A: 1 } }]) refuses({ controller }, 'controller');
+  assert.ok(surprises(window, { ...window, contributes: { apps: [{ ...editor, controller: { command: 'x' } }] } }).some((s) => s.startsWith('app vscodium runs a new command')));
+  // BUGS #94: a manual that offers `orkestri code` ops needs each app's controller, or only typeRun.
+  const manual = new Map([...windowFiles, ['AGENTS.md', Buffer.from('`orkestri code "VSCodium" open a.rs`')]]);
+  const offers = { ...window, agents: { manual: 'AGENTS.md' } };
+  assert.throws(() => validate(offers, manual), /needs a controller/);
+  validate({ ...offers, contributes: { apps: [{ ...editor, controller: 'bridge' }] } }, manual);
+  validate({ ...offers, contributes: { apps: [{ ...editor, typeRun: true }] } }, manual);
+  validate({ ...offers, contributes: { apps: [editor] } }, new Map([...windowFiles, ['AGENTS.md', Buffer.from('Ask the person to open it.')]]));
+  // BUGS #93: an app that opens folders starts on the workspace's folder.
+  refuses({ args: [] }, 'starts on ${folder}');
+  refuses({ openFolder: ['--reuse-window'] }, 'starts on ${folder}');
   // Alacritty: `run` typed into its window, its font size a `section.key` of a TOML file.
   validate({ ...window, contributes: { apps: [{ ...editor, typeRun: true, zoom: { file: 'orkestri.toml', sizes: { 'font.size': 11 } } }] } }, windowFiles);
   for (const typeRun of ['yes', false]) refuses({ typeRun }, 'typeRun');
@@ -188,11 +199,15 @@ test('web apps: a runtime of the computer or its download (n8n on Node.js)', () 
 test('cards: an extension unlocks a built-in card and brings what it runs on (Jupyter)', () => {
   const python = { url: 'https://github.com/x/y/releases/download/1/cpython-3.12.16%2B20261110-install_only_stripped.tar.gz', sha256: 'c'.repeat(64), size: 10, version: '3.12.16', strip: 1 };
   const setup = [{ command: '${appPath}/python.exe', args: ['-m', 'pip', 'install', 'ipykernel==7.4.0'], env: { PIP_NO_CACHE_DIR: '1' } }];
-  const jupyter = { ...app, permissions: ['process', 'localhost', 'network'], contributes: { cards: [{ id: 'python', kind: 'notebookCell', download: python, setup }] } };
+  const controller = { command: '${appPath}/python.exe', args: ['-I', '${extensionPath}/kernel.py'] };
+  const jupyter = { ...app, permissions: ['process', 'localhost', 'network'], contributes: { cards: [{ id: 'python', kind: 'notebookCell', download: python, setup, controller }] } };
   validate(jupyter, files);
   const card = (patch) => ({ ...jupyter, contributes: { cards: [{ ...jupyter.contributes.cards[0], ...patch }] } });
   assert.throws(() => validate(card({ kind: 'terminal' }), files), /kind must be one of/);
-  assert.throws(() => validate(card({ command: 'x' }), files), /\{ id, kind, download, setup \}/);
+  assert.throws(() => validate(card({ command: 'x' }), files), /\{ id, kind, download, setup, controller \}/);
+  // BUGS #94: what the card talks to is the package's.
+  assert.throws(() => validate(card({ controller: undefined }), files), /controller must be/);
+  assert.throws(() => validate(card({ controller: 'bridge' }), files), /controller must be/);
   assert.throws(() => validate(card({ setup: [{ args: ['x'] }] }), files), /contributes\.cards: setup/);
   assert.throws(() => validate(card({ download: { ...python, url: 'https://x/a..b.zip' } }), files), /contributes\.cards: download/);
   assert.throws(() => validate({ ...jupyter, kinds: ['contributions'] }, files), /needs the kind "app"/);
@@ -200,11 +215,12 @@ test('cards: an extension unlocks a built-in card and brings what it runs on (Ju
   assert.throws(() => validate({ ...jupyter, permissions: ['process'] }, files), /"network"/);
   assert.ok(surprises(null, jupyter).includes(`card python (notebookCell) downloads a program: ${python.url} (sha256 ${python.sha256})`));
   assert.ok(surprises(null, jupyter).includes('card python (notebookCell) runs a new command: ${appPath}/python.exe -m pip install ipykernel==7.4.0'));
+  assert.ok(surprises(null, jupyter).includes('card python (notebookCell) runs a new controller: ${appPath}/python.exe -I ${extensionPath}/kernel.py'));
   assert.deepEqual(surprises(jupyter, jupyter), ['can reach the internet (network)']);
   // Or a folder of the package holding what it runs on (its Python, shipped inside).
-  const inside = { ...jupyter, contributes: { cards: [{ id: 'python', kind: 'notebookCell', path: 'python' }] } };
+  const inside = { ...jupyter, contributes: { cards: [{ id: 'python', kind: 'notebookCell', path: 'python', controller }] } };
   validate(inside, new Map([...files, ['python/python.exe', Buffer.from('MZ')]]));
   assert.throws(() => validate(inside, files), /path must be a folder of the package/);
-  assert.throws(() => validate({ ...inside, contributes: { cards: [{ id: 'python', kind: 'notebookCell', path: '../python' }] } }, files), /inside|outside|path/);
-  assert.throws(() => validate({ ...inside, contributes: { cards: [{ id: 'python', kind: 'notebookCell', path: 'python', download: python }] } }, new Map([...files, ['python/python.exe', Buffer.from('MZ')]])), /instead of/);
+  assert.throws(() => validate({ ...inside, contributes: { cards: [{ id: 'python', kind: 'notebookCell', path: '../python', controller }] } }, files), /inside|outside|path/);
+  assert.throws(() => validate({ ...inside, contributes: { cards: [{ id: 'python', kind: 'notebookCell', path: 'python', download: python, controller }] } }, new Map([...files, ['python/python.exe', Buffer.from('MZ')]])), /instead of/);
 });

@@ -23,6 +23,13 @@ server, no web page, no Electron.
   (Zed reads it live), never below 69 % of its sizes; a `settings.json` the person filled with comments is left alone.
 - **Agents** (`AGENTS.md`): a linked terminal opens a file at a line, `orkestri code "Zed" open path:line`. Zed offers
   nothing else from outside on Windows (no open editors, selection or problems).
+- **The controller** (`controller.exe`, its source in `controller/`, the manifest's `controller`): Orkestri runs it for
+  each `orkestri code` op with the card in `ORKESTRI_*` variables. `open` posts F24, the path (relative ones from the
+  agent's folder, `ORKESTRI_CWD`) and Enter to the card's window (`ORKESTRI_WINDOW`) and answers once Zed's title names
+  the file; anything else answers that it is not offered. Rebuild it after changing `controller/`:
+  `cd controller && cargo build --release` (Rust 1.85 or later, no dependency), then copy
+  `target/release/controller.exe` to the package folder; build with `--remap-path-prefix` so it holds no path of your
+  machine.
 - Closing the card, disabling the extension or closing Orkestri ends Zed and everything it started. Zed may leave a
   small crash-handler socket file in `%LOCALAPPDATA%\Zed`, which it always looks for there.
 - Measured (Zed 1.29.2, one card, a Markdown file open): one process, 174 MB working set, 156 MB private.

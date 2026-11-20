@@ -1,10 +1,10 @@
 {
   "id": "orkestri.wezterm",
   "name": "WezTerm",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publisher": "orkestri",
   "description": "WezTerm, the open-source terminal written in Rust (MIT), as its own window inside a card, one per card; the terminals linked to it type command lines into it and read its screen. Installing it downloads WezTerm 20240203-110809-5046fc22 for Windows (66 MB, its portable zip from WezTerm's GitHub release, checked against the pinned sha256).",
-  "minAppVersion": "0.1.4",
+  "minAppVersion": "0.1.8",
   "icon": "icon.png",
   "kinds": [
     "app"
@@ -47,23 +47,11 @@
             "font_size": 12
           }
         },
-        "cli": {
-          "command": "${appPath}/wezterm.exe",
+        "controller": {
+          "command": "${extensionPath}/controller.exe",
           "env": {
             "WEZTERM_UNIX_SOCKET": "${userProfile}/.local/share/wezterm/gui-sock-${pid}"
-          },
-          "run": [
-            "cli",
-            "--no-auto-start",
-            "send-text",
-            "--no-paste",
-            "${text}"
-          ],
-          "read": [
-            "cli",
-            "--no-auto-start",
-            "get-text"
-          ]
+          }
         }
       }
     ]

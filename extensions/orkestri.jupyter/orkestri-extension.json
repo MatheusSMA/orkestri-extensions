@@ -1,10 +1,10 @@
 {
   "id": "orkestri.jupyter",
   "name": "Jupyter",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "publisher": "orkestri",
   "description": "Jupyter notebook cells on the canvas: Python code cells linked into pipelines on a real kernel, run by you or by linked terminals (orkestri cell). Comes with its own Python 3.12.16 and ipykernel 7.4.0 inside the package (python-build-standalone, pinned): installing it only unpacks them, no Python needed on the computer, nothing system-wide. Not made or endorsed by Project Jupyter.",
-  "minAppVersion": "0.1.7",
+  "minAppVersion": "0.1.8",
   "icon": "icon.png",
   "kinds": ["app"],
   "permissions": ["process", "localhost", "network", "files"],
@@ -14,7 +14,8 @@
       {
         "id": "jupyter-python",
         "kind": "notebookCell",
-        "path": "python"
+        "path": "python",
+        "controller": { "command": "${appPath}/python.exe", "args": ["-I", "${extensionPath}/kernel.py"] }
       }
     ]
   }

@@ -1,10 +1,10 @@
 {
   "id": "orkestri.n8n",
   "name": "n8n",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "publisher": "orkestri",
   "description": "n8n, the workflow automation tool (fair-code, Sustainable Use License), on this computer only, its editor in a card; linked terminals list, create and run workflows and read executions. Installing it uses the computer's Node.js 24 or downloads the official portable Node.js 24.22.3 (36 MB, pinned sha256), then installs n8n 2.48.6 from npm into Orkestri's profile (about 2.6 GB, a few minutes). Not made or endorsed by n8n GmbH.",
-  "minAppVersion": "0.1.5",
+  "minAppVersion": "0.1.8",
   "icon": "icon.png",
   "kinds": ["app"],
   "permissions": ["process", "localhost", "network", "files"],
@@ -30,7 +30,8 @@
         "port": "auto",
         "health": "/orkestri/health",
         "path": "/orkestri/login?token=${token}",
-        "startTimeoutMs": 30000
+        "startTimeoutMs": 30000,
+        "controller": "bridge"
       }
     ]
   }

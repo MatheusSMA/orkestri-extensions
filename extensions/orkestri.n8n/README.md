@@ -26,7 +26,8 @@ card. Terminals linked to the card list, create and run workflows and read their
 - **Agents:** on the first start the extension makes an n8n API key with that account and keeps it in `api-key.json`
   of the extension's data folder; the agents never see it. They reach n8n through Orkestri (`orkestri code "n8n"
   workflows | create | run | executions`), answered by `launch.js` with n8n's public API (and n8n's own "execute
-  workflow" call for `run`).
+  workflow" call for `run`). `launch.js` is the package's controller (`"controller": "bridge"`: the server it runs
+  answers over Orkestri's bridge), so it checks each op's arguments itself; Orkestri only passes them on.
 - Measured (n8n 2.48.6, Node.js 24.22.3, one machine): n8n ready about 7 s after it starts (14 s before the caches; its
   first start, about 30 s, happens at install), the card showing a loading page meanwhile; about 600 MB of memory while
   it runs (`launch.js`, n8n and its task runner).

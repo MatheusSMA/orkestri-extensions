@@ -23,6 +23,10 @@ that the extension is off (with a button to the store), and `orkestri cell` says
 - **The kernel** runs on that Python by default. A Python of the computer that already has ipykernel (a `python.exe`
   on PATH whose environment holds it) can be chosen instead in the same header menu, which checks the one in use.
   Changing it restarts the kernels.
+- **The controller** (`kernel.py`, the manifest's `controller`): Orkestri draws the cells; everything that talks to
+  the kernel is this script, run by the package's Python with jupyter_client, one per pipeline. It starts the kernel
+  (its environment: the folders of `%pip install` below), runs each cell and sends the kernel's messages back as they
+  come, interrupts it and stops it, over JSON lines on its stdin and stdout.
 - **Packages:** `%pip install numpy` in a cell installs it for the kernel's Python and `import numpy` works at once, no
   restart. For the extension's own Python the packages go into `<profile>\extensions-data\orkestri.jupyter\python-packages`
   (kept across updates of the extension), never into the person's own Python folders.

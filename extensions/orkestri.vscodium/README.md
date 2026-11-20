@@ -13,8 +13,10 @@ its own window: no server, no web page.
   no update checks, no telemetry. A window VSCodium opens on its own (File › New Window) is closed: it stays in its card.
 - **The bridge** (`bridge/`, packed as `bridge.vsix`) connects the window to its card: its content follows the canvas
   zoom, and terminals linked to the card drive it (`AGENTS.md`: `orkestri code "VSCodium" open | editors | read |
-  problems | run`).
-- **Abrir pasta** in the card's tool bar opens the workspace's working folder in it.
+  problems | run`). It is the package's controller (`"controller": "bridge"`): Orkestri passes each op as the agent
+  gave it, and the bridge checks its arguments and takes a relative path from the agent's folder (`cwd`).
+- **Its folder:** it opens on the workspace's working folder; the card's sub-bar shows it, and **Mudar pasta** opens
+  another one in the same window (kept in the card for its next start).
 - Closing the card, disabling the extension or closing Orkestri ends VSCodium and everything it started.
 
 Rebuild `bridge.vsix` after changing `bridge/` (a zip with the files under `extension/`):

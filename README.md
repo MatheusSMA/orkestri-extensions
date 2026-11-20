@@ -93,8 +93,8 @@ unknown key, kind, permission, contribution or colour token is refused, not igno
 | `themes` | contributions | `id`, `label`, `base` (`light` or `dark`), `colors`: tokens over the base, each `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa` |
 | `terminalPresets` | contributions | `id`, `name`, `command`, optional `icon` |
 | `prompts` | contributions | `name`, optional `description`, `file` (a UTF-8 file inside the package, up to 256 KB) |
-| `apps` | app | `id`, `name`, `command`, `args`, optional `env`, `cwd`, `port` (`"auto"` or 1024–65535), `health` and `path` (start with `/`), `startTimeoutMs` (at most 300000), `icon` (required: the Lucide glyph of its row in the canvas's Adicionar menu and of its card), `setup`, `download`, `runtime` (below); for a window app also `window`, `defaults`, `openFolder` (below) |
-| `cards` | app | `id`, `kind` (a card Orkestri draws itself that the extension unlocks: `notebookCell`), and what that card runs on: `path` (a folder of the package), or `download` and `setup` (below) |
+| `apps` | app | `id`, `name`, `command`, `args`, optional `env`, `cwd`, `port` (`"auto"` or 1024–65535), `health` and `path` (start with `/`), `startTimeoutMs` (at most 300000), `icon` (required: the Lucide glyph of its row in the canvas's Adicionar menu and of its card), `setup`, `download`, `runtime`, `controller` (below); for a window app also `window`, `defaults`, `openFolder`, `zoom`, `typeRun` (below) |
+| `cards` | app | `id`, `kind` (a card Orkestri draws itself that the extension unlocks: `notebookCell`), what that card runs on: `path` (a folder of the package), or `download` and `setup`, and its `controller` (required, below) |
 
 Theme tokens: `background`, `canvas_bg`, `grid_line`, `bg`, `bg_elevated`, `bg_hover`, `bg_active`, `fg`, `fg_muted`,
 `fg_subtle`, `border`, `border_strong`, `accent`, `accent_soft`, `destructive`, `warning`, `success`, `sidebar_bg`,
@@ -136,7 +136,14 @@ and carries a portable Python with ipykernel in `python/`:
 ```
 
 Or a `download` and `setup`, prepared as an app's when the extension is installed or enabled (Jupyter 1.0.0 did that);
-Orkestri hands the folder (`${appPath}`) to the card. Keep the package within the limits (50 MB zipped, 200 MB
+Orkestri hands the folder (`${appPath}`) to the card. What the card talks to is the package's `controller` (Orkestri
+0.1.8), kept alive while the card needs it and spoken to in JSON lines on its stdin and stdout (below); Jupyter 1.2.0's
+is `kernel.py`, run by its own Python:
+
+```json
+"cards": [{ "id": "jupyter-python", "kind": "notebookCell", "path": "python",
+            "controller": { "command": "${appPath}/python.exe", "args": ["-I", "${extensionPath}/kernel.py"] } }]
+``` Keep the package within the limits (50 MB zipped, 200 MB
 unpacked): leave out bytecode caches, tests and what the card never uses, and no file may hold a path of the machine
 it was built on (a pip command launcher does).
 
@@ -146,8 +153,8 @@ A web app runs while a card of it exists (it starts when one is opened or is the
 with its last card). Make its `health` answer at once with a page that waits for the real server, as
 `orkestri.n8n/launch.js` does. Every app is started with `ORKESTRI_BRIDGE=<port>:<token>`: a program that connects to
 `127.0.0.1:<port>`, sends `{"token":"<token>"}` and a newline, then answers one JSON line per request
-(`{ "id", "op", "args" }` → `{ "id", "ok": true, "text" }` or `{ "id", "ok": false, "error" }`) is what a linked
-terminal's `orkestri code "<card>" <op>` reaches; say which ops in the `agents` manual.
+(`{ "id", "op", "args", "cwd" }` → `{ "id", "ok": true, "text" }` or `{ "id", "ok": false, "error" }`) can be the
+app's controller (`"controller": "bridge"`, below); say which ops in the `agents` manual.
 
 **Window apps** (`"window": true`) show the program's own window in a card instead of a web page: no port, no server,
 and they need only `process`. Orkestri catches the window as it is created, strips its frame and keeps it over the
@@ -160,25 +167,49 @@ card. Their extra keys:
 - `defaults`: a folder of the package whose files are copied into `${instancePath}` when they are not there yet (first
   settings; a person's own changes stay). Each card runs its own program, started with its own folder
   `${instancePath}` (`${dataPath}\instances\<card>`): point the program's data there to keep two cards apart.
-- `openFolder`: the arguments that open a folder in the running program (`${folder}`: the workspace's working folder),
-  run as a second start of `command`; the card's "Abrir pasta".
+- `${folder}` in `args`: the card's folder, the workspace's working folder unless the card's sub-bar chose another
+  ("Mudar pasta", kept in the card). **Rule: an editor opens the workspace's folder** (Orkestri 0.1.8): an editor or a
+  terminal starts on `${folder}`.
+- `openFolder`: the arguments that open another folder in the running program (`${folder}`), run as a second start of
+  `command`, when the card's folder is changed (VSCodium: `["--reuse-window", "${folder}"]`); without it the program
+  starts again on the new folder. An app with `openFolder` must start on `${folder}` too (CI checks it).
 - `strip` in a `download` (0 to 3): leading folders of the archive dropped as it is unpacked (WezTerm's zip wraps
   everything in one folder).
 - `zoom` (Orkestri 0.1.3): `{ "file": "<relative path in ${instancePath}>", "sizes": { "<key>": <size at zoom 1> } }`,
   a file the program reloads by itself where Orkestri writes the font sizes as the canvas zooms; a `.toml` file holds
   only the sizes, `"font.size"` under `[font]` (Alacritty imports it).
-- `cli` (Orkestri 0.1.4): agents through the program's own command line: `{ "command", "env", "run", "read" }`, with
-  `${appPath}`, `${pid}` (the card's program), `${userProfile}` (the person's profile folder) and `${text}` (the line
-  `run` sends):
+- `typeRun: true` (Orkestri 0.1.4): a program with no API (Alacritty on Windows): `run` types the line and Enter into
+  its window. The one primitive Orkestri offers for agents; anything else is the package's controller.
+
+## Write a controller
+
+The rule (Orkestri 0.1.8): **what talks to a program comes with its package**, never in Orkestri. An app whose `agents`
+manual offers `orkestri code` ops names its `controller` (or offers only `typeRun`); a card always does. CI refuses it
+otherwise. Orkestri passes any op word and its arguments as the agent gave them (`--file path` already read): check
+them, and answer the rest with `<op> is not offered by this program: only …`.
+
+- **A program of the package, run once per op**: `"controller": { "command", "args", "env" }`. Orkestri runs
+  `command [args…] <op> [op args…]` with no console window, in a job, from the package folder, 30 s at most. Print the
+  answer on stdout and exit 0; print why on stderr and exit 1. Placeholders: an app's, plus `${pid}` (the card's
+  program) and `${userProfile}` (the person's own profile folder). Zed's and WezTerm's are small Rust programs with
+  no dependency, their source in the package's `controller/`; a script run by the package's runtime works the same
+  (`"command": "${appPath}/node.exe", "args": ["${extensionPath}/control.js"]`).
 
   ```json
-  "cli": { "command": "${appPath}/wezterm.exe",
-           "env": { "WEZTERM_UNIX_SOCKET": "${userProfile}/.local/share/wezterm/gui-sock-${pid}" },
-           "run": ["cli", "--no-auto-start", "send-text", "--no-paste", "${text}"],
-           "read": ["cli", "--no-auto-start", "get-text"] }
+  "controller": { "command": "${extensionPath}/controller.exe",
+                  "env": { "WEZTERM_UNIX_SOCKET": "${userProfile}/.local/share/wezterm/gui-sock-${pid}" } }
   ```
-- `typeRun: true` (Orkestri 0.1.4): a program with no API (Alacritty on Windows): `run` types the line and Enter into
-  its window.
+- **The card in its environment**: `ORKESTRI_CARD` (the card), `ORKESTRI_INSTANCE` (its own folder), `ORKESTRI_FOLDER`
+  (its folder), `ORKESTRI_CWD` (where the agent ran the command: resolve relative paths against it),
+  `ORKESTRI_EXTENSION`, `ORKESTRI_DATA`, `ORKESTRI_APP` (the package, its data, `${appPath}`), `ORKESTRI_PID` and
+  `ORKESTRI_WINDOW` (the program and its main window, a decimal handle, 0 while it has none: post keys to it as Zed's
+  does), `ORKESTRI_PORT` and `ORKESTRI_TOKEN` (a web app's; never print them).
+- **Kept alive**, when the program already runs code of yours: `"controller": "bridge"`, its program answers over
+  `ORKESTRI_BRIDGE` (above; VSCodium's bridge extension, n8n's `launch.js`). A card's controller is kept by Orkestri
+  and spoken to on stdin/stdout: `{ "id", "op", "args" }` → any `{ "id", "event" }` while it works, then `{ "id",
+  "ok", "text" | "error" }`.
+- Keep it small and readable: a reviewer reads it (a changed controller is flagged for review), and a binary ships
+  with its source and no path of your machine (build with `--remap-path-prefix`).
 
 Packages: at most 50 MB zipped and 200 MB unpacked; no links, no absolute paths or `..`; a `contributions` package
 holds only data files (`.json`, `.md`, `.png`, `.svg`, `.txt`).
@@ -198,8 +229,8 @@ maintainer. CI marks a pull request for review, and fails it until a maintainer 
 when it:
 
 - asks for a permission the previous version did not have, or for `network` at all;
-- adds or changes an app's command, arguments, environment or `setup`, or the program its `download` fetches, or a
-  card's `setup` or `download`;
+- adds or changes an app's command, arguments, environment, `setup` or `controller`, or the program its `download`
+  fetches, or a card's `setup`, `download` or `controller`;
 - may serve on anything but 127.0.0.1 (`0.0.0.0`, `::`, another host after `--host`, `--bind` and the like);
 - changes a publisher's key or GitHub account, removes something, or touches files outside `extensions/` and
   `publishers/`.
@@ -224,7 +255,8 @@ Two signatures, both ed25519 over exact bytes:
 it is checked by) and on every push:
 
 - each publisher file: the key is a 32-byte ed25519 public key, the login a GitHub login;
-- each extension: the manifest rules above (its `icon`, each app's `icon` and `agents` included), the folder named after the id,
+- each extension: the manifest rules above (its `icon`, each app's `icon` and `agents` included; a controller for
+  `orkestri code` ops and for every card; an app with `openFolder` starting on `${folder}`), the folder named after the id,
   `icon.png` a PNG up to 256 KB,
   `release.json` complete and its version the manifest's; the package downloaded, its size and sha256 as pinned, its
   signature verified with the publisher's key; the zip's paths, links and sizes; the manifest in the zip byte for byte

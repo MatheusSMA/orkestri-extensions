@@ -15,6 +15,13 @@ window.
   reloads, so the text follows the canvas zoom, never below 69 % of its size.
 - **Agents** (`AGENTS.md`): a linked terminal runs a command line in it and reads its screen, through WezTerm's own
   `wezterm cli` (`send-text`, `get-text`) aimed at that card's process.
+- **The controller** (`controller.exe`, its source in `controller/`, the manifest's `controller`): Orkestri runs it for
+  each `orkestri code` op with the card in `ORKESTRI_*` variables and `WEZTERM_UNIX_SOCKET` (the manifest's `env`: the
+  socket of the card's own WezTerm, `${userProfile}` and `${pid}` filled by Orkestri). `run` sends the line and a
+  carriage return (`sent: <line>`), `read` answers the last 40 lines of the screen, anything else that it is not
+  offered. Rebuild it after changing `controller/`: `cd controller && cargo build --release` (Rust 1.85 or later, no
+  dependency), then copy `target/release/controller.exe` to the package folder; build with `--remap-path-prefix` so
+  it holds no path of your machine.
 - WezTerm keeps one socket per running window in `%USERPROFILE%\.local\share\wezterm` (`gui-sock-<pid>`, empty files);
   WezTerm has no setting to move it. Closing the card, disabling the extension or closing Orkestri ends WezTerm and
   everything it started.

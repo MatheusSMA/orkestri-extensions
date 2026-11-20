@@ -1,7 +1,7 @@
 {
-  "version": "1.1.1",
-  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-19d/orkestri.vscodium-1.1.1.zip",
-  "size": 16299,
-  "sha256": "3bf9bf49f84ba792770dd15c2d82c8eb0c642ae141b5ce47e08eeefa2171b251",
-  "signature": "4qHUpgq3mvKreMohhv5uxiZS+45hlG0Q8hiOWKeR9oZeZmje2hjGHvgvQCaYoq8NPlal2oPD+n8uUpBRHZdzDQ=="
+  "version": "1.2.0",
+  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-20-controllers/orkestri.vscodium-1.2.0.zip",
+  "size": 17085,
+  "sha256": "78d3a733f96c000e44c8d834ee7e98c8985db3def0e6d226aa4e1cff4b2a9811",
+  "signature": "M8UNA0bnSONqBRRDWzGqutTQabt/QvmNrXbbIF/6SAGX8RgrsedzW/HVKQiKkaX5g8OJUOr2nWwcqXTuo7oFAw=="
 }

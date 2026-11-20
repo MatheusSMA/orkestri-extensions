@@ -121,12 +121,15 @@ function validate(m, files) {
   if (!kinds.length) fail('kinds must name at least one kind');
   if (kinds.includes('plugin')) fail('plugin extensions (WebAssembly) are not supported yet');
   iconOf(m, files);
+  // Whether its agents' manual offers `orkestri code` ops: then each app answers them with its controller (BUGS #94).
+  let codeOps = false;
   // Whether it works with the agents, said by every extension; if it does, the manual they get (a file of the package).
   if (m.agents !== false) {
     const manual = isObject(m.agents) && Object.keys(m.agents).join() === 'manual' && typeof m.agents.manual === 'string' ? m.agents.manual
       : fail('agents is required: false, or { "manual": "<file>" } when agents can use the extension');
     const text = files.get(inside(manual)) ?? fail(`agents.manual: ${manual} is missing`);
     if (text.length > MAX_MANUAL || !utf8(text)) fail(`agents.manual must be UTF-8 text up to ${MAX_MANUAL} bytes`);
+    codeOps = text.toString('utf8').includes('orkestri code');
   }
   if ('contributes' in m && !isObject(m.contributes)) fail('contributes must be an object');
   for (const [key, items] of Object.entries(m.contributes ?? {})) {
@@ -156,7 +159,9 @@ function validate(m, files) {
         // A built-in card kind it unlocks and what that card runs on, prepared as an app's program (download, setup).
         named('id');
         if (!CARDS.includes(t('kind'))) fail(`contributes.cards: kind must be one of ${CARDS.join(', ')}`);
-        if (!isObject(item) || Object.keys(item).some((k) => !['id', 'kind', 'download', 'setup', 'path'].includes(k))) fail('contributes.cards: an entry is { id, kind, download, setup } or { id, kind, path }');
+        if (!isObject(item) || Object.keys(item).some((k) => !['id', 'kind', 'download', 'setup', 'path', 'controller'].includes(k))) fail('contributes.cards: an entry is { id, kind, download, setup, controller } or { id, kind, path, controller }');
+        // What the card talks to is the package's (Jupyter's kernel.py on its own Python): Orkestri keeps it alive.
+        if (!commandLine(item.controller)) fail('contributes.cards: controller must be { command, args, env } (what the card talks to comes with the package)');
         if (!permissions.includes('process')) fail('a card that runs a program needs the permission "process"');
         // Or a folder of the package that holds it all (Jupyter's Python with ipykernel, shipped inside).
         if (has('path')) {
@@ -209,24 +214,16 @@ function validate(m, files) {
             && Object.entries(z.sizes).every(([k, v]) => k.split('.').every((p) => word(p.replaceAll('_', '-'))) && typeof v === 'number' && v >= 4 && v <= 100);
           if (!window || Object.keys(z ?? {}).length !== 2 || !file || !sizes) fail('contributes.apps: zoom must be { file (a relative path), sizes (1 to 8 names to sizes 4..100) } of a window app');
         }
-        if (has('openFile')) {
-          const o = item.openFile;
-          const n = isObject(o) && typeof o.key === 'string' && /^f\d+$/.test(o.key) ? Number(o.key.slice(1)) : 0;
-          if (!window || Object.keys(o ?? {}).length !== 1 || !(n >= 13 && n <= 24)) fail('contributes.apps: openFile must be { key: "f13" .. "f24" } of a window app');
-        }
-        // A window app driven through its own command line (WezTerm's `wezterm cli`): the program, its env and the
-        // arguments that `run` a command line (${text}) and `read` its screen.
-        if (has('cli')) {
-          const c = item.cli;
-          const texts = (k) => !(k in c) || (Array.isArray(c[k]) && c[k].length > 0 && c[k].every((a) => typeof a === 'string'));
-          const ok = window && isObject(c) && Object.keys(c).every((k) => ['command', 'env', 'run', 'read'].includes(k))
-            && typeof c.command === 'string' && c.command.trim() && bytes(c.command) <= 2000
-            && (!('env' in c) || (isObject(c.env) && Object.values(c.env).every((v) => typeof v === 'string')))
-            && texts('run') && texts('read') && ('run' in c || 'read' in c);
-          if (!ok) fail('contributes.apps: cli must be { command, env, run, read } of a window app');
-        }
-        // A window app with no API (Alacritty on Windows): `run` types the line into its window.
+        // Rule (BUGS #94): what drives a package comes with it. Its controller (a program of the package run per op, or
+        // "bridge": its own program answers over ORKESTRI_BRIDGE) answers the agents' `orkestri code` ops; Orkestri
+        // offers only declared primitives, `typeRun` (a window app with no API, Alacritty: `run` types the line).
+        if (has('controller') && item.controller !== 'bridge' && !commandLine(item.controller)) fail('contributes.apps: controller must be "bridge" or { command, args, env }');
         if (has('typeRun') && (item.typeRun !== true || !window)) fail('contributes.apps: typeRun must be true, of a window app');
+        if (codeOps && !has('controller') && !has('typeRun')) fail(`contributes.apps: ${t('id')} offers its agents ops (orkestri code): it needs a controller (or only typeRun), what talks to the program comes with the package`);
+        // Rule (BUGS #93): an editor opens the workspace's folder. Taking a folder is `${folder}` in `args`; an app
+        // that opens folders while it runs (`openFolder`) starts on one too.
+        const folder = (list) => (list ?? []).some((a) => typeof a === 'string' && a.includes('${folder}'));
+        if (has('openFolder') && !(folder(item.openFolder) && folder(item.args))) fail('contributes.apps: an app with openFolder starts on ${folder} (in args, and in openFolder): it opens the workspace\'s folder');
         const timeout = item.startTimeoutMs;
         if (has('startTimeoutMs') && !(Number.isInteger(timeout) && timeout >= 0 && timeout <= 300000)) fail('contributes.apps: startTimeoutMs must be at most 300000');
       }
@@ -243,11 +240,15 @@ function downloadRule(key, item, permissions) {
   if (!permissions.includes('network')) fail('a download needs the permission "network"');
 }
 
+// A command line of the manifest: `{ command, args, env }` (a setup step, a controller).
+function commandLine(c) {
+  return isObject(c) && Object.keys(c).every((k) => ['command', 'args', 'env'].includes(k)) && typeof c.command === 'string' && c.command.trim() && bytes(c.command) <= 2000
+    && (!('args' in c) || (Array.isArray(c.args) && c.args.every((a) => typeof a === 'string'))) && (!('env' in c) || (isObject(c.env) && Object.values(c.env).every((v) => typeof v === 'string')));
+}
+
 // Commands run once when it is installed, after its download.
 function setupRule(key, item) {
-  const step = (c) => isObject(c) && Object.keys(c).every((k) => ['command', 'args', 'env'].includes(k)) && typeof c.command === 'string' && c.command.trim() && bytes(c.command) <= 2000
-    && (!('args' in c) || (Array.isArray(c.args) && c.args.every((a) => typeof a === 'string'))) && (!('env' in c) || (isObject(c.env) && Object.values(c.env).every((v) => typeof v === 'string')));
-  if ('setup' in item && !(Array.isArray(item.setup) && item.setup.every(step))) fail(`contributes.${key}: setup must be a list of { command, args, env }`);
+  if ('setup' in item && !(Array.isArray(item.setup) && item.setup.every(commandLine))) fail(`contributes.${key}: setup must be a list of { command, args, env }`);
 }
 
 // The extension's `icon`, required: a Lucide glyph name as is, or a PNG or SVG file of the package as the data: address
@@ -393,7 +394,7 @@ function surprises(old, m) {
   const before = old?.permissions ?? [];
   for (const p of m.permissions ?? []) if (!before.includes(p)) out.push(`asks for a new permission: ${p}`);
   if ((m.permissions ?? []).includes('network')) out.push('can reach the internet (network)');
-  const run = (a) => JSON.stringify([a.command, a.args ?? [], a.env ?? {}, a.openFolder ?? [], a.setup ?? [], a.cli ?? null, a.typeRun ?? false]);
+  const run = (a) => JSON.stringify([a.command, a.args ?? [], a.env ?? {}, a.openFolder ?? [], a.setup ?? [], a.controller ?? null, a.typeRun ?? false]);
   const apps = new Map((old?.contributes?.apps ?? []).map((a) => [a.id, a]));
   for (const a of m.contributes?.apps ?? []) {
     const was = apps.get(a.id);
@@ -409,6 +410,7 @@ function surprises(old, m) {
   for (const c of m.contributes?.cards ?? []) {
     const was = cards.get(c.id);
     if (!was || JSON.stringify(was.setup ?? []) !== JSON.stringify(c.setup ?? [])) for (const st of c.setup ?? []) out.push(`card ${c.id} (${c.kind}) runs a new command: ${[st.command, ...(st.args ?? [])].join(' ')}`);
+    if (c.controller && JSON.stringify(was?.controller) !== JSON.stringify(c.controller)) out.push(`card ${c.id} (${c.kind}) runs a new controller: ${[c.controller.command, ...(c.controller.args ?? [])].join(' ')}`);
     if (c.download && JSON.stringify(was?.download) !== JSON.stringify(c.download)) {
       for (const d of [c.download].flat()) out.push(`card ${c.id} (${c.kind}) downloads a program: ${d.url} (sha256 ${d.sha256})`);
     }
