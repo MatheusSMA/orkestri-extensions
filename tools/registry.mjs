@@ -26,8 +26,8 @@ const CARDS = ['notebookCell', 'serviceBlock'];
 const PERMISSIONS = ['process', 'localhost', 'network', 'files'];
 const THEME_TOKENS = [
   'background', 'canvas_bg', 'grid_line', 'bg', 'bg_elevated', 'bg_hover', 'bg_active', 'fg', 'fg_muted', 'fg_subtle', 'border',
-  'border_strong', 'accent', 'accent_soft', 'destructive', 'warning', 'success', 'sidebar_bg', 'sidebar_fg', 'sidebar_hover',
-  'sidebar_active', 'sidebar_border', 'rope', 'terminal_paper', 'note_paper', 'note_ink', 'glass_rgb', 'glass_highlight', 'icon',
+  'border_strong', 'accent', 'accent_soft', 'accent_text', 'destructive', 'warning', 'success', 'sidebar_bg', 'sidebar_fg', 'sidebar_hover',
+  'sidebar_active', 'sidebar_border', 'rope', 'link_active', 'terminal_paper', 'card_rim', 'note_paper', 'note_ink', 'glass_rgb', 'glass_highlight', 'icon',
   'icon_soft', 'icon_softer', 'paper',
 ];
 const MANIFEST_KEYS = ['id', 'name', 'version', 'publisher', 'author', 'authorUrl', 'description', 'minAppVersion', 'kinds', 'permissions', 'contributes', 'icon', 'agents'];
