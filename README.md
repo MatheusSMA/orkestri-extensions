@@ -13,6 +13,7 @@ publisher's signature match the index.
 | [`orkestri.zed`](extensions/orkestri.zed) | Zed (open source) inside a card as its own window, one per card; the official build is downloaded when installed and checked against its pinned sha256 |
 | [`orkestri.wezterm`](extensions/orkestri.wezterm) | WezTerm (MIT) inside a card as its own window, one per card, its text following the canvas zoom; linked terminals run command lines in it and read its screen |
 | [`orkestri.alacritty`](extensions/orkestri.alacritty) | Alacritty (Apache-2.0 or MIT) inside a card as its own window, one per card, its text following the canvas zoom; linked terminals type command lines into it |
+| [`orkestri.warp-oss`](extensions/orkestri.warp-oss) | Warp (open-source build): Warp's AGPL client, built by this repository's `build-warp` workflow (`tools/warp/`), in a card as its own window, one per card; not made or endorsed by Warp. The build's release holds its source |
 | [`orkestri.files`](extensions/orkestri.files) | A sample app: a local static page served by Python in a card |
 | [`orkestri.n8n`](extensions/orkestri.n8n) | [n8n](https://n8n.io) (fair-code, Sustainable Use License) on this computer only, its editor in a card; linked terminals list, create and run workflows. Uses the computer's Node.js 24 or the official portable one, then installs n8n from npm into Orkestri's profile. Not made or endorsed by n8n GmbH |
 
