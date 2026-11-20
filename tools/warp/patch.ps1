@@ -4,7 +4,10 @@
 # 2. the single-instance lock and pipe are named after it too (upstream: one Warp per channel, a second start hands
 #    its arguments to the first and quits);
 # 3. WARP_DATA_ROOT, when set, holds every folder Warp keeps (data, config with settings.toml, state, cache, its
-#    home config) instead of the person's AppData and home.
+#    home config) instead of the person's AppData and home;
+# 4. with WARP_DATA_ROOT set, Warp keeps its private preferences in a file there (user_preferences.json, as on Linux)
+#    instead of the registry (HKCU\Software\Warp.dev\WarpOss), and does not register itself to start at login nor
+#    as the handler of warposs:// links (both are HKCU registry entries pointing at the card's copy).
 # Each change must match exactly once, or the script stops: a new upstream commit is checked, not patched blindly.
 $ErrorActionPreference = 'Stop'
 function Edit-Source([string]$File, [string]$Pattern, [string]$Replacement) {
@@ -28,4 +31,10 @@ foreach ($f in @(
     $guard = '    if let Some(root) = ' + $root + " {`n        return $value;`n    }`n"
     Edit-Source $paths ('(pub fn ' + $name + '\(\) -> ' + [regex]::Escape($type) + ' \{\r?\n)') ('$1' + $guard)
 }
+$inCard = 'std::env::var_os("WARP_DATA_ROOT").is_some()'
+$skip = "    if $inCard {`n        return;`n    }`n"
+Edit-Source 'app\src\login_item\windows.rs' '(pub\(super\) fn maybe_register_app_as_login_item\(ctx: &mut AppContext\) \{\r?\n)' ('$1' + $skip)
+Edit-Source 'app\src\app_services\windows\registry.rs' '(pub\(super\) fn register_uri_handler\(\) \{\r?\n)' ('$1' + $skip)
+$file = "            if $inCard {`n                if let Ok(prefs) = user_preferences::file_backed::FileBackedUserPreferences::new(super::user_preferences_file_path()) {`n                    return Box::new(prefs) as user_preferences::Model;`n                }`n            }`n"
+Edit-Source 'app\src\settings\init.rs' '(\} else if #\[cfg\(target_os = "windows"\)\] \{\r?\n)(\s+let app_id = warp_core::channel::ChannelState::app_id\(\);\r?\n\s+Box::new\(user_preferences::registry_backed)' ('$1' + $file + '$2')
 Write-Output 'patched'
