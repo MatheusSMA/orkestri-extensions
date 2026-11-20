@@ -20,6 +20,9 @@ const REGISTRY_KEY = '6LlcHznC3Aw1th4lz+WtEAVKzhOcdF187pS4LjMQcz4=';
 const MANIFEST = 'orkestri-extension.json';
 const MAX_PACKAGE = 50 << 20, MAX_UNPACKED = 200 << 20, MAX_TEXT = 256 << 10, MAX_ICON = 256 << 10;
 const KINDS = ['contributions', 'app', 'plugin'];
+// The built-in card kinds an extension unlocks (`contributes.cards`): Orkestri draws them, the extension brings what
+// they run on (the notebook cells: a Python with ipykernel).
+const CARDS = ['notebookCell'];
 const PERMISSIONS = ['process', 'localhost', 'network', 'files'];
 const THEME_TOKENS = [
   'background', 'canvas_bg', 'grid_line', 'bg', 'bg_elevated', 'bg_hover', 'bg_active', 'fg', 'fg_muted', 'fg_subtle', 'border',
@@ -124,9 +127,9 @@ function validate(m, files) {
   }
   if ('contributes' in m && !isObject(m.contributes)) fail('contributes must be an object');
   for (const [key, items] of Object.entries(m.contributes ?? {})) {
-    if (!['themes', 'terminalPresets', 'prompts', 'apps'].includes(key)) fail(`contributes.${key} is not supported yet`);
+    if (!['themes', 'terminalPresets', 'prompts', 'apps', 'cards'].includes(key)) fail(`contributes.${key} is not supported yet`);
     if (!Array.isArray(items)) fail(`contributes.${key} must be a list`);
-    const kind = key === 'apps' ? 'app' : 'contributions';
+    const kind = key === 'apps' || key === 'cards' ? 'app' : 'contributions';
     if (!kinds.includes(kind)) fail(`contributes.${key} needs the kind "${kind}"`);
     for (const item of items) {
       const t = (k) => (isObject(item) && typeof item[k] === 'string' ? item[k] : '');
@@ -146,6 +149,14 @@ function validate(m, files) {
         named('id');
         short('name', 200);
         if (typeof item.command !== 'string' || bytes(item.command) > 2000) fail('contributes.terminalPresets: command must be a text');
+      } else if (key === 'cards') {
+        // A built-in card kind it unlocks and what that card runs on, prepared as an app's program (download, setup).
+        named('id');
+        if (!CARDS.includes(t('kind'))) fail(`contributes.cards: kind must be one of ${CARDS.join(', ')}`);
+        if (!isObject(item) || Object.keys(item).some((k) => !['id', 'kind', 'download', 'setup'].includes(k))) fail('contributes.cards: an entry is { id, kind, download, setup }');
+        if (!permissions.includes('process')) fail('a card that runs a program needs the permission "process"');
+        downloadRule(key, item, permissions);
+        setupRule(key, item);
       } else if (key === 'prompts') {
         short('name', 200);
         const file = files.get(inside(t('file'))) ?? fail(`contributes.prompts: ${t('file')} is missing`);
@@ -159,12 +170,7 @@ function validate(m, files) {
         if (typeof window !== 'boolean') fail('contributes.apps: window must be true or false');
         if (window && !permissions.includes('process')) fail('a window app needs the permission "process"');
         if (!window && (!permissions.includes('process') || !permissions.includes('localhost'))) fail('an app needs the permissions "process" and "localhost"');
-        if (has('download')) {
-          // One file, or a list of up to 4 whose first names the version (Zed: its installer and the unpacker that opens it).
-          const list = Array.isArray(item.download) ? item.download : [item.download];
-          if (!(list.length >= 1 && list.length <= 4 && list.every(validDownload))) fail('contributes.apps: download needs url (https, ending in a file name), sha256 (64 lower-case hex digits), size and version, or a list of up to 4 of them');
-          if (!permissions.includes('network')) fail('a download needs the permission "network"');
-        }
+        downloadRule(key, item, permissions);
         // An interpreter the computer may already have (n8n on Node.js): the files its folder holds (the first its
         // program) and the start of what `--version` answers; its `download` is fetched only when PATH has none.
         if (has('runtime')) {
@@ -184,10 +190,7 @@ function validate(m, files) {
         const port = item.port;
         if (!(port === undefined || port === null || port === 'auto' || (Number.isInteger(port) && port >= 1024 && port <= 65535))) fail('contributes.apps: port must be "auto" or 1024..65535');
         for (const k of ['health', 'path']) if (has(k) && !t(k).startsWith('/')) fail(`contributes.apps: ${k} must start with /`);
-        // Commands run once when it is installed, after its download.
-        const step = (c) => isObject(c) && Object.keys(c).every((k) => ['command', 'args', 'env'].includes(k)) && typeof c.command === 'string' && c.command.trim() && bytes(c.command) <= 2000
-          && (!('args' in c) || (Array.isArray(c.args) && c.args.every((a) => typeof a === 'string'))) && (!('env' in c) || (isObject(c.env) && Object.values(c.env).every((v) => typeof v === 'string')));
-        if (has('setup') && !(Array.isArray(item.setup) && item.setup.every(step))) fail('contributes.apps: setup must be a list of { command, args, env }');
+        setupRule(key, item);
         // A window app with no bridge (Zed): the settings file of the card's folder it reads live and its font sizes at
         // zoom 1 (Orkestri scales them with the canvas); the key its defaults bind to its "go to file" prompt.
         if (has('zoom')) {
@@ -222,6 +225,22 @@ function validate(m, files) {
   }
 }
 
+// An app's (or a card's) download: one file, or a list of up to 4 whose first names the version (Zed: its installer and
+// the unpacker that opens it).
+function downloadRule(key, item, permissions) {
+  if (!('download' in item)) return;
+  const list = Array.isArray(item.download) ? item.download : [item.download];
+  if (!(list.length >= 1 && list.length <= 4 && list.every(validDownload))) fail(`contributes.${key}: download needs url (https, ending in a file name), sha256 (64 lower-case hex digits), size and version, or a list of up to 4 of them`);
+  if (!permissions.includes('network')) fail('a download needs the permission "network"');
+}
+
+// Commands run once when it is installed, after its download.
+function setupRule(key, item) {
+  const step = (c) => isObject(c) && Object.keys(c).every((k) => ['command', 'args', 'env'].includes(k)) && typeof c.command === 'string' && c.command.trim() && bytes(c.command) <= 2000
+    && (!('args' in c) || (Array.isArray(c.args) && c.args.every((a) => typeof a === 'string'))) && (!('env' in c) || (isObject(c.env) && Object.values(c.env).every((v) => typeof v === 'string')));
+  if ('setup' in item && !(Array.isArray(item.setup) && item.setup.every(step))) fail(`contributes.${key}: setup must be a list of { command, args, env }`);
+}
+
 // The extension's `icon`, required: a Lucide glyph name as is, or a PNG or SVG file of the package as the data: address
 // the index carries. The app accepts a package without it (made before the rule); the registry does not.
 function iconOf(m, files) {
@@ -237,9 +256,11 @@ function iconOf(m, files) {
 
 // A file of an app's `download`: pinned (https, sha256, size), a plain file name at the end of its address, its version a
 // folder name.
+// `+` and `%` too (python-build-standalone's `cpython-3.12.16%2B20261110-…`): kept as written, never decoded; no `..`
+// and no dot at the end, which Windows drops.
 const fileName = (url) => {
   const name = url.split(/[?#]/)[0].split('/').pop();
-  return /^[A-Za-z0-9._-]{1,100}$/.test(name) && !name.startsWith('.') ? name : null;
+  return /^[A-Za-z0-9._+%-]{1,100}$/.test(name) && !name.startsWith('.') && !name.endsWith('.') && !name.includes('..') ? name : null;
 };
 const validDownload = (d) => isObject(d) && typeof d.url === 'string' && d.url.startsWith('https://') && d.url.length <= 2000 && fileName(d.url) !== null
   && typeof d.sha256 === 'string' && /^[0-9a-f]{64}$/.test(d.sha256) && Number.isInteger(d.size) && d.size > 0
@@ -373,6 +394,15 @@ function surprises(old, m) {
     }
     if (!local(a.args ?? [])) out.push(`app ${a.id} may serve on more than 127.0.0.1`);
     if (a.runtime && JSON.stringify(was?.runtime) !== JSON.stringify(a.runtime)) out.push(`app ${a.id} may run on the computer's own ${a.runtime.files?.[0]} (${a.runtime.version}…) instead of its download`);
+  }
+  // What an unlocked card runs on: its download and its setup, read as an app's are.
+  const cards = new Map((old?.contributes?.cards ?? []).map((c) => [c.id, c]));
+  for (const c of m.contributes?.cards ?? []) {
+    const was = cards.get(c.id);
+    if (!was || JSON.stringify(was.setup ?? []) !== JSON.stringify(c.setup ?? [])) for (const st of c.setup ?? []) out.push(`card ${c.id} (${c.kind}) runs a new command: ${[st.command, ...(st.args ?? [])].join(' ')}`);
+    if (c.download && JSON.stringify(was?.download) !== JSON.stringify(c.download)) {
+      for (const d of [c.download].flat()) out.push(`card ${c.id} (${c.kind}) downloads a program: ${d.url} (sha256 ${d.sha256})`);
+    }
   }
   return out;
 }

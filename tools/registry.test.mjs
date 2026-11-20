@@ -180,3 +180,21 @@ test('web apps: a runtime of the computer or its download (n8n on Node.js)', () 
   assert.ok(surprises(null, n8n).includes("app server may run on the computer's own node.exe (v24.…) instead of its download"));
   assert.ok(!surprises(n8n, n8n).some((s) => s.includes('runtime') || s.includes('own node.exe')));
 });
+
+test('cards: an extension unlocks a built-in card and brings what it runs on (Jupyter)', () => {
+  const python = { url: 'https://github.com/x/y/releases/download/1/cpython-3.12.16%2B20261110-install_only_stripped.tar.gz', sha256: 'c'.repeat(64), size: 10, version: '3.12.16', strip: 1 };
+  const setup = [{ command: '${appPath}/python.exe', args: ['-m', 'pip', 'install', 'ipykernel==7.4.0'], env: { PIP_NO_CACHE_DIR: '1' } }];
+  const jupyter = { ...app, permissions: ['process', 'localhost', 'network'], contributes: { cards: [{ id: 'python', kind: 'notebookCell', download: python, setup }] } };
+  validate(jupyter, files);
+  const card = (patch) => ({ ...jupyter, contributes: { cards: [{ ...jupyter.contributes.cards[0], ...patch }] } });
+  assert.throws(() => validate(card({ kind: 'terminal' }), files), /kind must be one of/);
+  assert.throws(() => validate(card({ command: 'x' }), files), /\{ id, kind, download, setup \}/);
+  assert.throws(() => validate(card({ setup: [{ args: ['x'] }] }), files), /contributes\.cards: setup/);
+  assert.throws(() => validate(card({ download: { ...python, url: 'https://x/a..b.zip' } }), files), /contributes\.cards: download/);
+  assert.throws(() => validate({ ...jupyter, kinds: ['contributions'] }, files), /needs the kind "app"/);
+  assert.throws(() => validate({ ...jupyter, permissions: ['network'] }, files), /"process"/);
+  assert.throws(() => validate({ ...jupyter, permissions: ['process'] }, files), /"network"/);
+  assert.ok(surprises(null, jupyter).includes(`card python (notebookCell) downloads a program: ${python.url} (sha256 ${python.sha256})`));
+  assert.ok(surprises(null, jupyter).includes('card python (notebookCell) runs a new command: ${appPath}/python.exe -m pip install ipykernel==7.4.0'));
+  assert.deepEqual(surprises(jupyter, jupyter), ['can reach the internet (network)']);
+});

@@ -1,0 +1,34 @@
+{
+  "id": "orkestri.jupyter",
+  "name": "Jupyter",
+  "version": "1.0.0",
+  "publisher": "orkestri",
+  "description": "Jupyter notebook cells on the canvas: Python code cells linked into pipelines on a real kernel, run by you or by linked terminals (orkestri cell). Installing it downloads a portable CPython 3.12.16 (21 MB, pinned sha256) and installs ipykernel 7.4.0 into it, inside Orkestri's profile (about 170 MB): no Python needed on the computer, nothing system-wide. Not made or endorsed by Project Jupyter.",
+  "minAppVersion": "0.1.6",
+  "icon": "icon.png",
+  "kinds": ["app"],
+  "permissions": ["process", "localhost", "network", "files"],
+  "agents": { "manual": "AGENTS.md" },
+  "contributes": {
+    "cards": [
+      {
+        "id": "jupyter-python",
+        "kind": "notebookCell",
+        "download": {
+          "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261110/cpython-3.12.16%2B20261110-x86_64-pc-windows-msvc-install_only_stripped.tar.gz",
+          "sha256": "355ee61b8207b91574491b1c6dc9b0ebb4408fc56bfafe498f3ef439314b52dc",
+          "size": 22365213,
+          "version": "3.12.16",
+          "strip": 1
+        },
+        "setup": [
+          {
+            "command": "${appPath}/python.exe",
+            "args": ["-m", "pip", "install", "--no-warn-script-location", "ipykernel==7.4.0"],
+            "env": { "PYTHONNOUSERSITE": "1", "PIP_NO_CACHE_DIR": "1", "PIP_DISABLE_PIP_VERSION_CHECK": "1" }
+          }
+        ]
+      }
+    ]
+  }
+}
