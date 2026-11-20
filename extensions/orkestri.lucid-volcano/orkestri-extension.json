@@ -1,8 +1,10 @@
 {
   "id": "orkestri.lucid-volcano",
   "name": "Lucid Volcano",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "orkestri",
+  "author": "Marcos Gabriel",
+  "authorUrl": "https://marketplace.visualstudio.com/items?itemName=MarcosGabriel.lucid-volcano",
   "description": "Lava (greys) and Magma (navy) with a pink-red accent: the colours of Lucid Volcano, the VS Code theme by Marcos Gabriel (MarcosGabriel.lucid-volcano), mapped to Orkestri. The original states no licence, so this package holds none of its files: only its palette, with credit.",
   "minAppVersion": "0.1.3",
   "icon": "icon.png",

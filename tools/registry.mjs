@@ -30,7 +30,7 @@ const THEME_TOKENS = [
   'sidebar_active', 'sidebar_border', 'rope', 'terminal_paper', 'note_paper', 'note_ink', 'glass_rgb', 'glass_highlight', 'icon',
   'icon_soft', 'icon_softer', 'paper',
 ];
-const MANIFEST_KEYS = ['id', 'name', 'version', 'publisher', 'description', 'minAppVersion', 'kinds', 'permissions', 'contributes', 'icon', 'agents'];
+const MANIFEST_KEYS = ['id', 'name', 'version', 'publisher', 'author', 'authorUrl', 'description', 'minAppVersion', 'kinds', 'permissions', 'contributes', 'icon', 'agents'];
 // An agent manual is short: every agent in Orkestri gets it in its skill.
 const MAX_MANUAL = 4096;
 // The largest icon file a manifest may name: the index carries it (a data: address), signed with the rest.
@@ -105,6 +105,9 @@ function validate(m, files) {
   if (!version(s('version'))) fail('version must be x.y.z');
   if ('minAppVersion' in m && !version(m.minAppVersion)) fail('minAppVersion must be x.y.z');
   if ('description' in m && (typeof m.description !== 'string' || bytes(m.description) > 500)) fail('description must be a text up to 500 characters');
+  // Who made the content (a theme's colours, a port of someone's work), shown as its author; the publisher signs it.
+  if ('author' in m && (typeof m.author !== 'string' || !m.author.trim() || bytes(m.author) > 100)) fail('author must have 1 to 100 characters');
+  if ('authorUrl' in m && (typeof m.authorUrl !== 'string' || !m.authorUrl.startsWith('https://') || bytes(m.authorUrl) > 2000)) fail('authorUrl must be an https address');
   const list = (k, allowed) => {
     if (!(k in m)) return [];
     if (!Array.isArray(m[k])) fail(`${k} must be a list`);
@@ -460,7 +463,7 @@ function indexText(pubs, exts) {
   const extensions = ls('extensions').map((id) => {
     const m = parse(fs.readFileSync(path.join('extensions', id, MANIFEST)), MANIFEST);
     const r = parse(fs.readFileSync(path.join('extensions', id, 'release.json')), 'release.json');
-    return { id: m.id, name: m.name, version: m.version, publisher: m.publisher, description: m.description ?? '', kinds: m.kinds,
+    return { id: m.id, name: m.name, version: m.version, publisher: m.publisher, author: m.author, authorUrl: m.authorUrl, description: m.description ?? '', kinds: m.kinds,
       permissions: m.permissions ?? [], package: r.package, size: r.size, sha256: r.sha256, signature: r.signature, icon: exts[id]?.icon };
   });
   return JSON.stringify({ version: 1, publishers: pubs, extensions }, null, 2) + '\n';

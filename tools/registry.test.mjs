@@ -57,6 +57,10 @@ test('manifest rules', () => {
   refuses({ kinds: ['plugin'] }, 'not supported');
   refuses({ kinds: ['app'] }, 'needs the kind');
   refuses({ homepage: 'x' }, 'unknown key');
+  // Its author: who made the content, shown in its place; the publisher still signs.
+  validate({ ...theme, author: 'Marcos Gabriel', authorUrl: 'https://marketplace.visualstudio.com/items?itemName=MarcosGabriel.lucid-volcano' }, files);
+  for (const author of ['', ' ', 7, 'x'.repeat(101)]) refuses({ author }, 'author must');
+  for (const authorUrl of ['http://example.com', 'example.com', 1]) refuses({ authorUrl }, 'authorUrl');
   refuses({ contributes: { themes: [{ id: 'x', label: 'X', base: 'light', colors: { font: '#fff' } }] } }, 'unknown token');
   refuses({ contributes: { themes: [{ id: 'x', label: 'X', base: 'light', colors: { fg: 'red' } }] } }, '#rgb');
   refuses({ contributes: { prompts: [{ name: 'X', file: '../secret.md' }] } }, 'inside');

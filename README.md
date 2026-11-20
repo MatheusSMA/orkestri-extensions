@@ -71,6 +71,9 @@ unknown key, kind, permission, contribution or colour token is refused, not igno
 - `id`: `publisher.name`, each part lower-case letters, digits and dashes (at most 40, not starting with a dash);
   `publisher` is its first part, a registered publisher. The folder is named after the id.
 - `name`: 1 to 100 characters; `description`: up to 500; `version` and `minAppVersion`: `x.y.z`.
+- `author` (optional, 1 to 100 characters) and `authorUrl` (optional, an https address): who made the content, when
+  that is not the publisher (a theme's colours, a port of someone's work). The store shows "por <author>" in place of
+  the publisher, and "publicado por <publisher>" in the entry's details; the publisher still signs the package.
 - `icon` (required): a PNG or SVG file of the package up to 64 KB (`icon.png`, 128×128, is the usual one), or the
   name of a Lucide glyph Orkestri knows (`palette`, `code`, `globe`...). The store shows it beside the name and the
   author; the index carries it (a file as a `data:` address, so the index's signature covers it).
