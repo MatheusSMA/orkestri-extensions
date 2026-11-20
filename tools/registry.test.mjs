@@ -166,3 +166,17 @@ test('what needs a review', () => {
   moved.contributes.apps[0].download.url = 'https://example.com/other.zip';
   assert.deepEqual(surprises(window, moved), ['can reach the internet (network)', `app vscodium downloads a program: https://example.com/other.zip (sha256 ${sha})`]);
 });
+
+test('web apps: a runtime of the computer or its download (n8n on Node.js)', () => {
+  const node = { url: 'https://nodejs.org/dist/v24.22.3/node.zip', sha256: 'b'.repeat(64), size: 10, version: '24.22.3' };
+  const runtime = { files: ['node.exe', 'node_modules/npm/bin/npm-cli.js'], version: 'v24.' };
+  const n8n = { ...app, permissions: ['process', 'localhost', 'network'], contributes: { apps: [{ ...app.contributes.apps[0], command: '${appPath}/node.exe', download: node, runtime }] } };
+  validate(n8n, files);
+  const refuses = (patch) => assert.throws(() => validate({ ...n8n, contributes: { apps: [{ ...n8n.contributes.apps[0], ...patch }] } }, files), /runtime/, JSON.stringify(patch));
+  for (const bad of [{ files: [], version: 'v24.' }, { files: ['../node.exe'], version: 'v24.' }, { files: ['C:/node.exe'], version: 'v24.' }, { files: ['node.exe'] },
+    { files: ['node.exe'], version: '' }, { files: ['node.exe'], version: 'v24.', x: 1 }, 'node']) refuses({ runtime: bad });
+  const { download, ...alone } = n8n.contributes.apps[0];
+  assert.throws(() => validate({ ...n8n, contributes: { apps: [alone] } }, files), /runtime/, 'a runtime needs a download to fall back on');
+  assert.ok(surprises(null, n8n).includes("app server may run on the computer's own node.exe (v24.…) instead of its download"));
+  assert.ok(!surprises(n8n, n8n).some((s) => s.includes('runtime') || s.includes('own node.exe')));
+});

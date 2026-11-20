@@ -13,6 +13,7 @@ publisher's signature match the index.
 | [`orkestri.wezterm`](extensions/orkestri.wezterm) | WezTerm (MIT) inside a card as its own window, one per card, its text following the canvas zoom; linked terminals run command lines in it and read its screen |
 | [`orkestri.alacritty`](extensions/orkestri.alacritty) | Alacritty (Apache-2.0 or MIT) inside a card as its own window, one per card, its text following the canvas zoom; linked terminals type command lines into it |
 | [`orkestri.files`](extensions/orkestri.files) | A sample app: a local static page served by Python in a card |
+| [`orkestri.n8n`](extensions/orkestri.n8n) | [n8n](https://n8n.io) (fair-code, Sustainable Use License) on this computer only, its editor in a card; linked terminals list, create and run workflows. Uses the computer's Node.js 24 or the official portable one, then installs n8n from npm into Orkestri's profile. Not made or endorsed by n8n GmbH |
 
 ## Layout
 
@@ -87,7 +88,7 @@ unknown key, kind, permission, contribution or colour token is refused, not igno
 | `themes` | contributions | `id`, `label`, `base` (`light` or `dark`), `colors`: tokens over the base, each `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa` |
 | `terminalPresets` | contributions | `id`, `name`, `command`, optional `icon` |
 | `prompts` | contributions | `name`, optional `description`, `file` (a UTF-8 file inside the package, up to 256 KB) |
-| `apps` | app | `id`, `name`, `command`, `args`, optional `env`, `cwd`, `port` (`"auto"` or 1024–65535), `health` and `path` (start with `/`), `startTimeoutMs` (at most 300000), `icon` (required: the Lucide glyph of its row in the canvas's Adicionar menu and of its card), `setup` (below); for a window app also `window`, `download`, `defaults`, `openFolder` (below) |
+| `apps` | app | `id`, `name`, `command`, `args`, optional `env`, `cwd`, `port` (`"auto"` or 1024–65535), `health` and `path` (start with `/`), `startTimeoutMs` (at most 300000), `icon` (required: the Lucide glyph of its row in the canvas's Adicionar menu and of its card), `setup`, `download`, `runtime` (below); for a window app also `window`, `defaults`, `openFolder` (below) |
 
 Theme tokens: `background`, `canvas_bg`, `grid_line`, `bg`, `bg_elevated`, `bg_hover`, `bg_active`, `fg`, `fg_muted`,
 `fg_subtle`, `border`, `border_strong`, `accent`, `accent_soft`, `destructive`, `warning`, `success`, `sidebar_bg`,
@@ -101,7 +102,28 @@ console window and ends with the extension or with Orkestri; it is ready when it
 `setup`: a list of `{ "command", "args", "env" }` run in order, with no console window, as soon as the extension is
 installed or enabled (after its `download`), each required to succeed (`${extensionPath}`, `${dataPath}`, `${appPath}`).
 They run again only when they, the program or the extension's version change. Use it for what the program needs once
-(VSCodium installs its bridge extension with its own command line, headless).
+(VSCodium installs its bridge extension with its own command line, headless; n8n installs itself with npm into
+`${dataPath}`, never globally). A web app may have a `download` and `setup` too, and `${appPath}` then reaches its
+`command`, `args` and `env`.
+
+`runtime` (Orkestri 0.1.5): an interpreter the computer may already have, so the `download` is fetched only when it
+has none. `files` (1 to 4 relative paths) are what its folder holds, the first its program; `version` is the start of
+what `<program> --version` answers. A folder on PATH that holds them and answers that version is `${appPath}`;
+otherwise `${appPath}` is the download's folder, or the one folder in it holding the files.
+
+```json
+"download": { "url": "https://nodejs.org/dist/v24.22.3/node-v24.22.3-win-x64.zip", "sha256": "…", "size": 37762649, "version": "24.22.3" },
+"runtime": { "files": ["node.exe", "node_modules/npm/bin/npm-cli.js"], "version": "v24." },
+"setup": [{ "command": "${appPath}/node.exe", "args": ["${extensionPath}/launch.js", "install", "${dataPath}", "n8n@2.48.6"] }],
+"command": "${appPath}/node.exe", "args": ["${extensionPath}/launch.js", "serve", "${port}", "${token}", "${dataPath}"]
+```
+
+A web app runs while a card of it exists (it starts when one is opened or is there when Orkestri starts, and stops
+with its last card). Make its `health` answer at once with a page that waits for the real server, as
+`orkestri.n8n/launch.js` does. Every app is started with `ORKESTRI_BRIDGE=<port>:<token>`: a program that connects to
+`127.0.0.1:<port>`, sends `{"token":"<token>"}` and a newline, then answers one JSON line per request
+(`{ "id", "op", "args" }` → `{ "id", "ok": true, "text" }` or `{ "id", "ok": false, "error" }`) is what a linked
+terminal's `orkestri code "<card>" <op>` reaches; say which ops in the `agents` manual.
 
 **Window apps** (`"window": true`) show the program's own window in a card instead of a web page: no port, no server,
 and they need only `process`. Orkestri catches the window as it is created, strips its frame and keeps it over the

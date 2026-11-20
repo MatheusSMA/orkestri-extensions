@@ -1,0 +1,37 @@
+{
+  "id": "orkestri.n8n",
+  "name": "n8n",
+  "version": "1.0.0",
+  "publisher": "orkestri",
+  "description": "n8n, the workflow automation tool (fair-code, Sustainable Use License), on this computer only, its editor in a card; linked terminals list, create and run workflows and read executions. Installing it uses the computer's Node.js 24 or downloads the official portable Node.js 24.22.3 (36 MB, pinned sha256), then installs n8n 2.48.6 from npm into Orkestri's profile (about 2.6 GB, a few minutes). Not made or endorsed by n8n GmbH.",
+  "minAppVersion": "0.1.5",
+  "icon": "icon.png",
+  "kinds": ["app"],
+  "permissions": ["process", "localhost", "network", "files"],
+  "agents": { "manual": "AGENTS.md" },
+  "contributes": {
+    "apps": [
+      {
+        "id": "n8n",
+        "name": "n8n",
+        "icon": "zap",
+        "download": {
+          "url": "https://nodejs.org/dist/v24.22.3/node-v24.22.3-win-x64.zip",
+          "sha256": "e612af99f626ab415ea225af6bce5c971feb448cb5cae250bb1c3fa50c5f7d9f",
+          "size": 37762649,
+          "version": "24.22.3"
+        },
+        "runtime": { "files": ["node.exe", "node_modules/npm/bin/npm-cli.js"], "version": "v24." },
+        "setup": [
+          { "command": "${appPath}/node.exe", "args": ["${extensionPath}/launch.js", "install", "${dataPath}", "n8n@2.48.6"] }
+        ],
+        "command": "${appPath}/node.exe",
+        "args": ["${extensionPath}/launch.js", "serve", "${port}", "${token}", "${dataPath}"],
+        "port": "auto",
+        "health": "/orkestri/health",
+        "path": "/orkestri/login?token=${token}",
+        "startTimeoutMs": 30000
+      }
+    ]
+  }
+}

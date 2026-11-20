@@ -165,6 +165,15 @@ function validate(m, files) {
           if (!(list.length >= 1 && list.length <= 4 && list.every(validDownload))) fail('contributes.apps: download needs url (https, ending in a file name), sha256 (64 lower-case hex digits), size and version, or a list of up to 4 of them');
           if (!permissions.includes('network')) fail('a download needs the permission "network"');
         }
+        // An interpreter the computer may already have (n8n on Node.js): the files its folder holds (the first its
+        // program) and the start of what `--version` answers; its `download` is fetched only when PATH has none.
+        if (has('runtime')) {
+          const r = item.runtime;
+          const relative = (f) => typeof f === 'string' && f.length > 0 && f.split(/[\\/]/).every((p) => p && p !== '.' && p !== '..' && !p.includes(':'));
+          const ok = isObject(r) && Object.keys(r).sort().join() === 'files,version' && Array.isArray(r.files) && r.files.length >= 1 && r.files.length <= 4
+            && r.files.every(relative) && typeof r.version === 'string' && r.version.length >= 1 && r.version.length <= 40 && has('download');
+          if (!ok) fail('contributes.apps: runtime must be { files (1 to 4 relative paths), version (the start of what --version answers) } of an app with a download');
+        }
         if (!(typeof item.icon === 'string' && word(item.icon))) fail('contributes.apps: icon must be a glyph name (the canvas menu and the card show it)');
         if (has('defaults')) {
           const folder = inside(t('defaults'));
@@ -363,6 +372,7 @@ function surprises(old, m) {
       for (const d of [a.download].flat()) out.push(`app ${a.id} downloads a program: ${d.url} (sha256 ${d.sha256})`);
     }
     if (!local(a.args ?? [])) out.push(`app ${a.id} may serve on more than 127.0.0.1`);
+    if (a.runtime && JSON.stringify(was?.runtime) !== JSON.stringify(a.runtime)) out.push(`app ${a.id} may run on the computer's own ${a.runtime.files?.[0]} (${a.runtime.version}…) instead of its download`);
   }
   return out;
 }
