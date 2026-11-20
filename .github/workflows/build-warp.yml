@@ -1,0 +1,88 @@
+name: build-warp
+
+# Builds Warp's open-source client for Windows (warpdotdev/warp, AGPL-3.0) at a pinned commit with
+# tools/warp/build.ps1 and publishes it, with its source, as a release of this repository: the program the
+# orkestri.warp-oss package downloads. Run by hand (Actions > build-warp > Run workflow).
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: The warpdotdev/warp commit to build
+        required: true
+        default: 2c01ad402d83e04a5ae1e2231639456fe423800f
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 360
+    env:
+      COMMIT: ${{ inputs.commit }}
+    steps:
+      - name: Long paths
+        run: git config --global core.longpaths true
+
+      - uses: actions/checkout@v4
+        with:
+          path: registry
+
+      - uses: actions/checkout@v4
+        with:
+          repository: warpdotdev/warp
+          ref: ${{ inputs.commit }}
+          path: warp
+          lfs: true
+
+      - name: The runner
+        shell: pwsh
+        run: |
+          "cores: $env:NUMBER_OF_PROCESSORS, memory: $([math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB)) GB"
+          Get-PSDrive -PSProvider FileSystem | Format-Table Name, @{ n = 'FreeGB'; e = { [math]::Round($_.Free / 1GB) } }
+
+      - name: Rust of that commit (rust-toolchain.toml)
+        working-directory: warp
+        run: |
+          rustup toolchain install
+          rustc --version
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: warp -> target
+          shared-key: warp-oss
+          cache-on-failure: true
+
+      - name: protoc and cargo-about (as upstream's CI)
+        run: |
+          choco install protoc --no-progress -y
+          cargo install --locked cargo-about --version 0.8.4
+
+      # A short drive letter keeps the target paths under Windows' 260 characters, as upstream's own CI does.
+      - name: Build
+        timeout-minutes: 320
+        shell: pwsh
+        run: |
+          subst W: "$env:GITHUB_WORKSPACE\warp"
+          $start = Get-Date
+          & "$env:GITHUB_WORKSPACE\registry\tools\warp\build.ps1" -Warp W:\ -Out "$env:GITHUB_WORKSPACE\out\warp-oss" -Commit $env:COMMIT -BuildScript "https://github.com/${{ github.repository }}/blob/${{ github.sha }}/tools/warp/build.ps1"
+          "build took $([math]::Round(((Get-Date) - $start).TotalMinutes)) min"
+
+      - name: Package with its source
+        shell: pwsh
+        run: |
+          $short = $env:COMMIT.Substring(0, 12)
+          Set-Location "$env:GITHUB_WORKSPACE\out"
+          Compress-Archive -Path warp-oss\* -DestinationPath "warp-oss-windows-x64-$short.zip"
+          tar -czf "warp-oss-source-$short.tar.gz" --exclude=target --exclude=.git -C "$env:GITHUB_WORKSPACE" warp
+          Get-ChildItem *.zip, *.tar.gz | ForEach-Object { "$($_.Name) $($_.Length) $((Get-FileHash $_ -Algorithm SHA256).Hash.ToLower())" }
+
+      - name: Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          short=${COMMIT:0:12}
+          gh release create "warp-oss-$short-${{ github.run_number }}" out/warp-oss-windows-x64-$short.zip out/warp-oss-source-$short.tar.gz \
+            --repo "${{ github.repository }}" --title "Warp (open-source build) $short" --notes-file out/warp-oss/SOURCE.md
