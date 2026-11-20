@@ -1,10 +1,10 @@
 {
   "id": "orkestri.alacritty",
   "name": "Alacritty",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publisher": "orkestri",
   "description": "Alacritty, the fast open-source terminal written in Rust (Apache-2.0 or MIT), as its own window inside a card, one per card; the terminals linked to it type command lines into it. Installing it downloads Alacritty 0.17.0 for Windows (6 MB, its portable program from Alacritty's GitHub release, checked against the pinned sha256).",
-  "minAppVersion": "0.1.4",
+  "minAppVersion": "0.1.9",
   "icon": "icon.png",
   "kinds": [
     "app"
@@ -24,6 +24,7 @@
         "name": "Alacritty",
         "icon": "square-terminal",
         "window": true,
+        "kind": "terminal",
         "download": {
           "url": "https://github.com/alacritty/alacritty/releases/download/v0.17.0/Alacritty-v0.17.0-portable.exe",
           "sha256": "5ad70ddc5c2a2bfe84084a2c4c73558e9360914f035a902d7a69277be7249f1f",

@@ -15,6 +15,9 @@ its own window.
   reloads it live, so the text follows the canvas zoom, never below 69 % of its size.
 - **Agents** (`AGENTS.md`): a linked terminal types a command line into it (`run`). Alacritty has no API to read its
   screen and no IPC on Windows, so that is all.
+- **An Orkestri terminal** (`"kind": "terminal"`, 1.1.0): Conectar on its card, linked and listed as a terminal; its
+  shell gets Orkestri's environment, so agents inside run `orkestri list`, `ask`, `see`; asks are typed into it (one
+  line, 10 s after it opens); `check` shows nothing (no screen to read).
 - Closing the card, disabling the extension or closing Orkestri ends Alacritty and everything it started.
 - Memory, one card: Alacritty 86 MB working set (92 MB private), plus its shell (PowerShell 78 MB, conhost 8 MB).
 

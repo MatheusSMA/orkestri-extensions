@@ -1,7 +1,7 @@
 {
-  "version": "1.1.0",
-  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-20-controllers/orkestri.wezterm-1.1.0.zip",
-  "size": 119064,
-  "sha256": "18927b32755dce51099a153bca26dd17b63f8841f550d922ee761c1713547377",
-  "signature": "wIu0yGGbJktZWXlfRrW+s2+UAU+Tu+leO7JYBwW9S7DS3fu0B1bHlttChL0PgkJu0YSWsM85x53+KhNdq9DOCQ=="
+  "version": "1.2.0",
+  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-20-terminals/orkestri.wezterm-1.2.0.zip",
+  "size": 118718,
+  "sha256": "ba228d4e6495cf99b89486f35648cb0a12ae8cc745940e95dc1311394d9a305b",
+  "signature": "K1Z7WbtaLAwuZvr0FkTjRNFz9L4UcAYNKUKctYAeCmL44D2Gq3hyPZ6vIWfykF1Y2VTn5o1iOshxTu80OWn4Dg=="
 }
