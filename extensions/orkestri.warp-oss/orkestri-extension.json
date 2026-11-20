@@ -1,7 +1,7 @@
 {
   "id": "orkestri.warp-oss",
   "name": "Warp (open-source build)",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "publisher": "orkestri",
   "description": "Warp's open-source terminal client as its own window inside a card, one per card, its settings and data in the card's folder; linked terminals type command lines into it. Built by Orkestri from warpdotdev/warp's AGPL source; not made or endorsed by Warp. Installing it downloads that build (169 MB, a release of orkestri-extensions that also holds its source, checked against the pinned sha256). No account needed for the terminal.",
   "minAppVersion": "0.1.11",
@@ -26,15 +26,16 @@
         "window": true,
         "kind": "terminal",
         "download": {
-          "url": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/warp-oss-2c01ad402d83-4/warp-oss-windows-x64-2c01ad402d83.zip",
-          "sha256": "b28c9cef31ad8dc912412464c8e30be2172550dc2727674299ccee4b05e12648",
-          "size": 169435098,
-          "version": "2c01ad402d83-4"
+          "url": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/warp-oss-2c01ad402d83-5/warp-oss-windows-x64-2c01ad402d83.zip",
+          "sha256": "619916f683543f044aac2b8d9611319d69065a0f3faa9487551dcdf18cd02a7d",
+          "size": 169414675,
+          "version": "2c01ad402d83-5"
         },
         "command": "${appPath}/warp-oss.exe",
         "env": {
           "WARP_DATA_ROOT": "${instancePath}/warp",
-          "WARP_DATA_PROFILE": "${instance}"
+          "WARP_DATA_PROFILE": "${instance}",
+          "WARP_INITIAL_WORKING_DIR": "${folder}"
         },
         "zoom": {
           "file": "warp/config/settings.toml",

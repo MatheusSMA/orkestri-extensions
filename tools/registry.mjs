@@ -251,6 +251,8 @@ function validate(m, files) {
         // that opens folders while it runs (`openFolder`) starts on one too.
         const folder = (list) => (list ?? []).some((a) => typeof a === 'string' && a.includes('${folder}'));
         if (has('openFolder') && !(folder(item.openFolder) && folder(item.args))) fail('contributes.apps: an app with openFolder starts on ${folder} (in args, and in openFolder): it opens the workspace\'s folder');
+        // Rule (BUGS #101): so does every terminal, by its args, a variable of its env, or its cwd.
+        if (item.kind === 'terminal' && !folder([...(item.args ?? []), ...Object.values(item.env ?? {}), item.cwd])) fail('contributes.apps: a terminal starts on ${folder} (in args, env or cwd): it opens the workspace\'s folder');
         const timeout = item.startTimeoutMs;
         if (has('startTimeoutMs') && !(Number.isInteger(timeout) && timeout >= 0 && timeout <= 300000)) fail('contributes.apps: startTimeoutMs must be at most 300000');
       }

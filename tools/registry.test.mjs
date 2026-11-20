@@ -155,6 +155,13 @@ test('window apps: no server, a pinned download', () => {
     assert.throws(() => validate({ ...terminal, contributes: { apps: [{ ...editor, kind: 'terminal', typeRun: true }] } }, new Map([...windowFiles, ['AGENTS.md', Buffer.from(text)]])), /Orkestri inside it/, text);
   }
   assert.throws(() => validate({ ...window, contributes: { apps: [{ ...editor, kind: 'terminal', typeRun: true }] } }, windowFiles), /Orkestri inside it/, 'agents false');
+  // BUGS #101: a terminal starts on the workspace's folder too (Warp OSS 1.1.0 opened in Orkestri's): args, env or cwd.
+  const shell = { ...editor, kind: 'terminal', typeRun: true, args: [] };
+  delete shell.openFolder;
+  for (const way of [{ args: ['--cwd', '${folder}'] }, { env: { WARP_INITIAL_WORKING_DIR: '${folder}' } }, { cwd: '${folder}' }]) {
+    validate({ ...terminal, contributes: { apps: [{ ...shell, ...way }] } }, inside);
+  }
+  assert.throws(() => validate({ ...terminal, contributes: { apps: [{ ...shell, env: { WARP_DATA_ROOT: '${instancePath}' } }] } }, inside), /a terminal starts on \$\{folder\}/);
   // BUGS #93: an app that opens folders starts on the workspace's folder.
   refuses({ args: [] }, 'starts on ${folder}');
   refuses({ openFolder: ['--reuse-window'] }, 'starts on ${folder}');

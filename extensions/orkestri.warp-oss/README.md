@@ -11,7 +11,10 @@ Warp's open-source terminal client inside an Orkestri card as its own window. Bu
 - **One Warp per card:** each card's Warp keeps everything in its folder of the extension's data
   (`instances\<card>\warp`: settings, history, its preferences), never in the person's AppData, home or registry, does
   not start with Windows and does not take over `warposs://` links (the build's changes, `SOURCE.md`). It starts
-  already past Warp's welcome steps, in a shell session in the profile's home.
+  already past Warp's welcome steps, in a shell session on the workspace's folder (1.2.0, Orkestri 0.1.11:
+  `WARP_INITIAL_WORKING_DIR`, which Warp's shell start-up goes to); the card's "Mudar pasta" starts it again on
+  another folder. A card's Warp does not restore its last session (the build's change since `-5`: a restored session
+  kept its old folder).
 - **No account needed** for the terminal. Warp's AI, Warp Drive and sign-in use Warp's own servers, if the person
   signs in.
 - **Zoom** (1.1.1, Orkestri 0.1.11): the card writes Warp's own zoom of its whole UI, `appearance.window.zoom_level`,

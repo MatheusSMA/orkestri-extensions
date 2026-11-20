@@ -237,14 +237,20 @@ refuses a terminal without a way in for an ask (its `controller` or `typeRun`) o
    `ORKESTRI_TERMINAL_ID` (the card), `ORKESTRI_WORKSPACE_ID`, `ORKESTRI_CLI` (the `orkestri` command), PATH with that
    command's folder first, and the profile's home as `USERPROFILE`. A program that rebuilds its shell's PATH (WezTerm
    and Warp read it from the registry) must put the folder of `ORKESTRI_CLI` first again: WezTerm's `card.lua`
-   (`set_environment_variables`), Warp's build patch.
-2. **The card is found by `ORKESTRI_TERMINAL_ID`**: `orkestri` inside speaks as that card; nothing else to do.
-3. **Asks are typed**: the message on one line, then its Enter, through the controller's op `write <text>` (each piece
+   (`set_environment_variables`), Warp's build patch. Keep `CLAUDE_CONFIG_DIR`, `CLAUDE_SECURESTORAGE_CONFIG_DIR` and
+   `CODEX_HOME` as given too: through them Claude Code and Codex in the card are already signed in with the person's
+   own login; a program that builds its shell's environment from scratch leaves them asking for one.
+2. **Start on the workspace's folder**: `${folder}` in `args`, in a variable of `env` (Warp:
+   `"WARP_INITIAL_WORKING_DIR": "${folder}"`) or in `cwd`; CI refuses a terminal that names it nowhere. The card's
+   "Mudar pasta" starts the program again on another folder.
+3. **The card is found by `ORKESTRI_TERMINAL_ID`**: `orkestri` inside speaks as that card; nothing else to do.
+4. **Asks are typed**: the message on one line, then its Enter, through the controller's op `write <text>` (each piece
    as given, `\r` is Enter; WezTerm: `wezterm cli send-text --no-paste`), or with `typeRun`. Readiness: the card is
    ready 10 s after its window is in the card (no bracketed-paste sign, as a native terminal's agent gives).
-4. **`check` and `see`** show the controller's `read` (WezTerm: the last 40 lines); without one, nothing (say so).
-5. **Check it end to end** on a desktop of its own before submitting: link a native shell to the card; `orkestri list`
-   in each shows the other; a reader in the card gets the native one's `orkestri ask "<card>" "…" --async`.
+5. **`check` and `see`** show the controller's `read` (WezTerm: the last 40 lines); without one, nothing (say so).
+6. **Check it end to end** on a desktop of its own before submitting: link a native shell to the card; `orkestri list`
+   in each shows the other; a reader in the card gets the native one's `orkestri ask "<card>" "…" --async`; its shell
+   opens in the workspace's folder.
 
 The full guide is Orkestri's `docs/store.md`, "Terminal plugins".
 
