@@ -18,6 +18,10 @@ Warp's open-source terminal client inside an Orkestri card as its own window. Bu
   live, so the text follows the canvas zoom, never below 69 % of its size; the other settings in that file stay.
 - **Agents** (`AGENTS.md`): a linked terminal types a command line into it (`run`). Nothing else is possible from
   outside.
+- **An Orkestri terminal** (`"kind": "terminal"`, 1.1.0): Conectar on its card, linked and listed as a terminal; its
+  shell gets Orkestri's environment (the build puts the folder of the `orkestri` command first in PATH again, since
+  Warp builds a session's PATH from the registry), so agents inside run `orkestri list`, `ask`, `see`; asks are typed
+  into it (one line, 10 s after it opens); `check` shows nothing (no screen to read).
 - Closing the card, disabling the extension or closing Orkestri ends Warp and everything it started.
 
 Licence: the Warp client is AGPL-3.0 (its UI crates MIT), © Denver Technologies, Inc. The build is redistributed by
