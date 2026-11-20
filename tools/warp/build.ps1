@@ -52,7 +52,9 @@ Built by Orkestri from warpdotdev/warp's AGPL source; not made or endorsed by Wa
   side by side with separate data: ``WARP_DATA_PROFILE`` is read in release builds too (upstream: debug builds only),
   the single-instance lock and pipe are named after it, and ``WARP_DATA_ROOT``, when set, holds Warp's data, config,
   state and cache folders and its private preferences (a file instead of the registry), and Warp then does not
-  register itself to start at login nor as the handler of ``warposs://`` links. Nothing else is changed.
+  register itself to start at login nor as the handler of ``warposs://`` links, nor restore its last session (it opens
+  on the folder ``WARP_INITIAL_WORKING_DIR`` names); and a new session's PATH starts with the folder of
+  ``ORKESTRI_CLI``. Nothing else is changed.
 - Third-party licences: ``resources/THIRD_PARTY_LICENSES.txt``, ``LICENSE-WINDOWS-TERMINAL`` (ConPTY, OpenConsole),
   ``LICENSE-DXC`` (DirectX Shader Compiler).
 - The oss channel has no telemetry, crash reporting or auto-update. Sign-in, Warp Drive and hosted AI use Warp's

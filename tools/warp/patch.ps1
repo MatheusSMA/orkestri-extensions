@@ -11,6 +11,9 @@
 # 5. the shell finds the `orkestri` command of the Orkestri that started it: Warp builds the PATH of a new session
 #    from the registry (not from its own environment), so the folder ORKESTRI_CLI names goes first again (Orkestri
 #    BUGS #97: an extension's terminal is an Orkestri terminal, its agents run `orkestri list`, `ask`...).
+# 6. with WARP_DATA_ROOT set, Warp never restores its last session at start: a card's Warp opens on the folder
+#    Orkestri gives it (WARP_INITIAL_WORKING_DIR, which the shell's start-up script goes to), as a native terminal
+#    opens there, also after the card's "Mudar pasta" (Orkestri BUGS #101; a restored session kept its old folder).
 # Each change must match exactly once, or the script stops: a new upstream commit is checked, not patched blindly.
 $ErrorActionPreference = 'Stop'
 function Edit-Source([string]$File, [string]$Pattern, [string]$Replacement) {
@@ -52,4 +55,5 @@ $orkestriPath = @'
     }
 '@
 Edit-Source 'crates\warp_terminal\src\local_tty\windows\environment.rs' '(    add_local_machine_env\(&mut env\);\r?\n    add_user_env\(&mut env\);\r?\n)(\r?\n    env\.insert\()' ('$1' + $orkestriPath + '$2')
+Edit-Source 'app\src\root_view.rs' 'if \*GeneralSettings::as_ref\(ctx\)\.restore_session \{' "if *GeneralSettings::as_ref(ctx).restore_session && !$inCard {"
 Write-Output 'patched'
