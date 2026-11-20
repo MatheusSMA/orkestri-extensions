@@ -13,13 +13,8 @@ $ErrorActionPreference = 'Stop'
 $Out = (New-Item -ItemType Directory -Force -Path $Out).FullName
 Set-Location $Warp
 
-# The one change to Warp's code: WARP_DATA_PROFILE is read in release builds too (upstream reads it only in debug
-# builds), so each Orkestri card runs its own Warp with its own settings and data.
-$state = 'crates\warp_core\src\channel\state.rs'
-$source = Get-Content -Raw -LiteralPath $state
-$pattern = 'if cfg!\(debug_assertions\) \{(\r?\n\s+std::env::var\("WARP_DATA_PROFILE"\)\.ok\(\))'
-if ([regex]::Matches($source, $pattern).Count -ne 1) { throw "$state changed upstream: the patch does not apply" }
-Set-Content -NoNewline -LiteralPath $state -Value ([regex]::Replace($source, $pattern, 'if true {$1'))
+# Orkestri's changes to Warp's code (patch.ps1 says which and why).
+& "$PSScriptRoot\patch.ps1"
 
 # Upstream's release build of the oss channel (profile rlto: thin LTO), without debug info: a 4-core runner has
 # 16 GB of memory, and upstream notes that debug info is what made its own CI run out of it.
@@ -53,8 +48,10 @@ Built by Orkestri from warpdotdev/warp's AGPL source; not made or endorsed by Wa
   ``warpui_core`` and ``warpui`` MIT: ``LICENSE-AGPL``, ``LICENSE-MIT``). The same source, as built, is attached to
   this release as ``warp-oss-source-*.tar.gz``.
 - Build script: $BuildScript (channel ``oss``, profile ``rlto`` without debug info, Windows x64).
-- Modified: ``crates/warp_core/src/channel/state.rs`` reads ``WARP_DATA_PROFILE`` in release builds too (upstream:
-  debug builds only), so several copies can run side by side with separate data. Nothing else is changed.
+- Modified (``tools/warp/patch.ps1`` beside the build script, applied before the build), so several copies can run
+  side by side with separate data: ``WARP_DATA_PROFILE`` is read in release builds too (upstream: debug builds only),
+  the single-instance lock and pipe are named after it, and ``WARP_DATA_ROOT``, when set, holds Warp's data, config,
+  state and cache folders. Nothing else is changed.
 - Third-party licences: ``resources/THIRD_PARTY_LICENSES.txt``, ``LICENSE-WINDOWS-TERMINAL`` (ConPTY, OpenConsole),
   ``LICENSE-DXC`` (DirectX Shader Compiler).
 - The oss channel has no telemetry, crash reporting or auto-update. Sign-in, Warp Drive and hosted AI use Warp's
