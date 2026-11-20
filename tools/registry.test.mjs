@@ -76,6 +76,8 @@ test('manifest rules', () => {
   const media = new Map([...files, ['media/sea.mp4', Buffer.from('mp4')], ['media/big.webp', Buffer.alloc((20 << 20) + 1)]]);
   const themed = (b, k = 'backdrop') => ({ ...theme, contributes: { themes: [{ id: 'x', label: 'X', base: 'dark', colors: {}, [k]: b }] } });
   validate(themed({ template: 'aurora', dim: 0.4, grid: false }), media);
+  validate(themed({ template: 'smoke' }), media);
+  validate(themed({ template: 'fog', dim: 0.2 }, 'terminalBackdrop'), media);
   // Orkestri BUGS #132: the introduction's still lights.
   validate(themed({ template: 'glow', dim: 0 }), media);
   validate(themed({ file: 'media/sea.mp4', fit: 'contain', blur: 0 }, 'terminalBackdrop'), media);
