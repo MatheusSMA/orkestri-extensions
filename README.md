@@ -93,7 +93,7 @@ unknown key, kind, permission, contribution or colour token is refused, not igno
 | `themes` | contributions | `id`, `label`, `base` (`light` or `dark`), `colors`: tokens over the base, each `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa` |
 | `terminalPresets` | contributions | `id`, `name`, `command`, optional `icon` |
 | `prompts` | contributions | `name`, optional `description`, `file` (a UTF-8 file inside the package, up to 256 KB) |
-| `apps` | app | `id`, `name`, `command`, `args`, optional `env`, `cwd`, `port` (`"auto"` or 1024–65535), `health` and `path` (start with `/`), `startTimeoutMs` (at most 300000), `icon` (required: the Lucide glyph of its row in the canvas's Adicionar menu and of its card), `setup`, `download`, `runtime`, `controller` (below); for a window app also `window`, `defaults`, `openFolder`, `zoom`, `typeRun` (below) |
+| `apps` | app | `id`, `name`, `command`, `args`, optional `env`, `cwd`, `port` (`"auto"` or 1024–65535), `health` and `path` (start with `/`), `startTimeoutMs` (at most 300000), `icon` (required: the Lucide glyph of its row in the canvas's Adicionar menu and of its card), `setup`, `download`, `runtime`, `controller` (below); for a window app also `window`, `defaults`, `openFolder`, `zoom`, `typeRun`, `kind` (below) |
 | `cards` | app | `id`, `kind` (a card Orkestri draws itself that the extension unlocks: `notebookCell`), what that card runs on: `path` (a folder of the package), or `download` and `setup`, and its `controller` (required, below) |
 
 Theme tokens: `background`, `canvas_bg`, `grid_line`, `bg`, `bg_elevated`, `bg_hover`, `bg_active`, `fg`, `fg_muted`,
@@ -180,6 +180,7 @@ card. Their extra keys:
   only the sizes, `"font.size"` under `[font]` (Alacritty imports it).
 - `typeRun: true` (Orkestri 0.1.4): a program with no API (Alacritty on Windows): `run` types the line and Enter into
   its window. The one primitive Orkestri offers for agents; anything else is the package's controller.
+- `kind: "terminal"` (Orkestri 0.1.9): the program is a terminal, and its card a full Orkestri terminal (below).
 
 ## Write a controller
 
@@ -213,6 +214,29 @@ them, and answer the rest with `<op> is not offered by this program: only …`.
 
 Packages: at most 50 MB zipped and 200 MB unpacked; no links, no absolute paths or `..`; a `contributions` package
 holds only data files (`.json`, `.md`, `.png`, `.svg`, `.txt`).
+
+## Terminal plugins
+
+A window app with `"kind": "terminal"` (WezTerm, Alacritty, Warp) is an Orkestri terminal: Conectar and link chips on
+its card, its row in the canvas's **Terminais** menu, linked and listed as a terminal, and the communication skills
+(`orkestri list`, `ask`, `see`, `note`, `reply`) work inside it. CI refuses a terminal without a way in for an ask (its
+`controller` or `typeRun`) or whose `agents` manual lacks a `## Orkestri inside it` section naming `orkestri list` and
+`orkestri ask`. The recipe:
+
+1. **Pass the environment through to the shell.** Orkestri starts the program with `ORKESTRI_PIPE`,
+   `ORKESTRI_TERMINAL_ID` (the card), `ORKESTRI_WORKSPACE_ID`, `ORKESTRI_CLI` (the `orkestri` command), PATH with that
+   command's folder first, and the profile's home as `USERPROFILE`. A program that rebuilds its shell's PATH (WezTerm
+   and Warp read it from the registry) must put the folder of `ORKESTRI_CLI` first again: WezTerm's `card.lua`
+   (`set_environment_variables`), Warp's build patch.
+2. **The card is found by `ORKESTRI_TERMINAL_ID`**: `orkestri` inside speaks as that card; nothing else to do.
+3. **Asks are typed**: the message on one line, then its Enter, through the controller's op `write <text>` (each piece
+   as given, `\r` is Enter; WezTerm: `wezterm cli send-text --no-paste`), or with `typeRun`. Readiness: the card is
+   ready 10 s after its window is in the card (no bracketed-paste sign, as a native terminal's agent gives).
+4. **`check` and `see`** show the controller's `read` (WezTerm: the last 40 lines); without one, nothing (say so).
+5. **Check it end to end** on a desktop of its own before submitting: link a native shell to the card; `orkestri list`
+   in each shows the other; a reader in the card gets the native one's `orkestri ask "<card>" "…" --async`.
+
+The full guide is Orkestri's `docs/store.md`, "Terminal plugins".
 
 ## Permissions and review
 

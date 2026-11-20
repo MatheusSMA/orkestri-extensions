@@ -141,6 +141,18 @@ test('window apps: no server, a pinned download', () => {
   validate({ ...offers, contributes: { apps: [{ ...editor, controller: 'bridge' }] } }, manual);
   validate({ ...offers, contributes: { apps: [{ ...editor, typeRun: true }] } }, manual);
   validate({ ...offers, contributes: { apps: [editor] } }, new Map([...windowFiles, ['AGENTS.md', Buffer.from('Ask the person to open it.')]]));
+  // BUGS #97, #98: a terminal: a way in for an ask, and its manual's section on Orkestri inside it.
+  const inside = new Map([...windowFiles, ['AGENTS.md', Buffer.from('# T\n\n## Orkestri inside it\n\n`orkestri list`, `orkestri ask "A" "hi"`: typed.\n')]]);
+  const terminal = { ...window, agents: { manual: 'AGENTS.md' } };
+  validate({ ...terminal, contributes: { apps: [{ ...editor, kind: 'terminal', typeRun: true }] } }, inside);
+  validate({ ...terminal, contributes: { apps: [{ ...editor, kind: 'terminal', controller: { command: 'x' } }] } }, inside);
+  for (const bad of [{ kind: 'terminal' }, { kind: 'editor', typeRun: true }]) {
+    assert.throws(() => validate({ ...terminal, contributes: { apps: [{ ...editor, ...bad }] } }, inside), /kind must be "terminal"/, JSON.stringify(bad));
+  }
+  for (const text of ['`orkestri list`, `orkestri ask`', '## Orkestri inside it\n\n`orkestri list` only', '### Orkestri inside it\n`orkestri list` `orkestri ask`']) {
+    assert.throws(() => validate({ ...terminal, contributes: { apps: [{ ...editor, kind: 'terminal', typeRun: true }] } }, new Map([...windowFiles, ['AGENTS.md', Buffer.from(text)]])), /Orkestri inside it/, text);
+  }
+  assert.throws(() => validate({ ...window, contributes: { apps: [{ ...editor, kind: 'terminal', typeRun: true }] } }, windowFiles), /Orkestri inside it/, 'agents false');
   // BUGS #93: an app that opens folders starts on the workspace's folder.
   refuses({ args: [] }, 'starts on ${folder}');
   refuses({ openFolder: ['--reuse-window'] }, 'starts on ${folder}');

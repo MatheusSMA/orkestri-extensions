@@ -123,13 +123,16 @@ function validate(m, files) {
   iconOf(m, files);
   // Whether its agents' manual offers `orkestri code` ops: then each app answers them with its controller (BUGS #94).
   let codeOps = false;
+  // Its manual's text (empty when agents is false): a terminal's says how Orkestri works inside it (BUGS #98).
+  let manualText = '';
   // Whether it works with the agents, said by every extension; if it does, the manual they get (a file of the package).
   if (m.agents !== false) {
     const manual = isObject(m.agents) && Object.keys(m.agents).join() === 'manual' && typeof m.agents.manual === 'string' ? m.agents.manual
       : fail('agents is required: false, or { "manual": "<file>" } when agents can use the extension');
     const text = files.get(inside(manual)) ?? fail(`agents.manual: ${manual} is missing`);
     if (text.length > MAX_MANUAL || !utf8(text)) fail(`agents.manual must be UTF-8 text up to ${MAX_MANUAL} bytes`);
-    codeOps = text.toString('utf8').includes('orkestri code');
+    manualText = text.toString('utf8');
+    codeOps = manualText.includes('orkestri code');
   }
   if ('contributes' in m && !isObject(m.contributes)) fail('contributes must be an object');
   for (const [key, items] of Object.entries(m.contributes ?? {})) {
@@ -219,6 +222,14 @@ function validate(m, files) {
         // offers only declared primitives, `typeRun` (a window app with no API, Alacritty: `run` types the line).
         if (has('controller') && item.controller !== 'bridge' && !commandLine(item.controller)) fail('contributes.apps: controller must be "bridge" or { command, args, env }');
         if (has('typeRun') && (item.typeRun !== true || !window)) fail('contributes.apps: typeRun must be true, of a window app');
+        // Rule (BUGS #97, #98): a terminal is an Orkestri terminal (linked, listed, asked), so an ask needs a way in, its
+        // controller's `write` or typed (`typeRun`), and its manual a section on Orkestri inside it.
+        if (has('kind')) {
+          if (item.kind !== 'terminal' || !window || (!has('controller') && item.typeRun !== true)) fail('contributes.apps: kind must be "terminal", of a window app with a controller or typeRun (how an ask reaches it)');
+          if (!/^## Orkestri inside it\s*$/m.test(manualText) || !manualText.includes('orkestri list') || !manualText.includes('orkestri ask')) {
+            fail('contributes.apps: a terminal needs its agents manual\'s "## Orkestri inside it" section, naming orkestri list and orkestri ask (how a message reaches it, whether its screen is read)');
+          }
+        }
         if (codeOps && !has('controller') && !has('typeRun')) fail(`contributes.apps: ${t('id')} offers its agents ops (orkestri code): it needs a controller (or only typeRun), what talks to the program comes with the package`);
         // Rule (BUGS #93): an editor opens the workspace's folder. Taking a folder is `${folder}` in `args`; an app
         // that opens folders while it runs (`openFolder`) starts on one too.
