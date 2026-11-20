@@ -94,7 +94,7 @@ unknown key, kind, permission, contribution or colour token is refused, not igno
 | `terminalPresets` | contributions | `id`, `name`, `command`, optional `icon` |
 | `prompts` | contributions | `name`, optional `description`, `file` (a UTF-8 file inside the package, up to 256 KB) |
 | `apps` | app | `id`, `name`, `command`, `args`, optional `env`, `cwd`, `port` (`"auto"` or 1024–65535), `health` and `path` (start with `/`), `startTimeoutMs` (at most 300000), `icon` (required: the Lucide glyph of its row in the canvas's Adicionar menu and of its card), `setup`, `download`, `runtime`, `controller` (below); for a window app also `window`, `defaults`, `openFolder`, `zoom`, `typeRun`, `kind` (below) |
-| `cards` | app | `id`, `kind` (a card Orkestri draws itself that the extension unlocks: `notebookCell`), what that card runs on: `path` (a folder of the package), or `download` and `setup`, and its `controller` (required, below) |
+| `cards` | app | `id`, `kind` (a card Orkestri draws itself that the extension unlocks: `notebookCell`), what that card runs on: `path` (a folder of the package), or `download` and `setup`, and its `controller` (required, below); or `{ id, kind: "serviceBlock", service }` (Orkestri 0.1.11): blocks of a service app of the package (below) |
 
 Theme tokens: `background`, `canvas_bg`, `grid_line`, `bg`, `bg_elevated`, `bg_hover`, `bg_active`, `fg`, `fg_muted`,
 `fg_subtle`, `border`, `border_strong`, `accent`, `accent_soft`, `destructive`, `warning`, `success`, `sidebar_bg`,
@@ -191,6 +191,13 @@ card. Their extra keys:
   "lines": [{ "text", "tone" }], "actions": [{ "op", "label" }], "open": "/path" }`, `${token}` in `open` filled by
   Orkestri) and each action's `op <ref>`; a linked terminal's `orkestri code "<card>" <op>` reaches the service with the
   card's item as the first argument.
+- A **`serviceBlock` card** `{ "id", "kind": "serviceBlock", "service": "<a service app's id>" }` (Orkestri 0.1.11)
+  makes each node type of that service a block of the canvas (n8n's nodes): linked blocks are one item of the service,
+  made and run by its controller's ops: `types` (`[{ type, name, category, version, trigger }]`), `type <type>` (the
+  node's description: `properties`, `credentials`, `outputs`), `credentials [type]`, `credential-type <type>`,
+  `credential-new <type> <name> <JSON>`, `sync <chain JSON>` (`{ workflow, name, blocks, links }`, answering `{ workflow
+  }`: made once, updated after), `flow <workflow>` (`{ status, nodes: { <name>: { count, items, error, ms } } }`) and
+  `export <workflow>` (an existing one as a chain).
 
 ## Write a controller
 

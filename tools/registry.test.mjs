@@ -230,6 +230,10 @@ test('services and item cards: n8n kept on, a card per workflow (BUGS #102)', ()
   const { service, ...plain } = server;
   assert.throws(() => validate(with_([plain, flow]), files), /item names a service/);
   for (const bad of [{ item: 'nope' }, { command: 'x' }, { icon: 'Zap!' }]) assert.throws(() => validate(with_([server, { ...flow, ...bad }]), files), /item|icon/, JSON.stringify(bad));
+  // BUGS #110: the blocks of a service (n8n's nodes) name it, nothing else.
+  const blocks = (card) => ({ ...app, contributes: { apps: [server], cards: [card] } });
+  validate(blocks({ id: 'block', kind: 'serviceBlock', service: 'server' }), files);
+  for (const bad of [{ service: 'nope' }, { controller: { command: 'x' } }]) assert.throws(() => validate(blocks({ id: 'block', kind: 'serviceBlock', service: 'server', ...bad }), files), /serviceBlock/, JSON.stringify(bad));
 });
 
 test('cards: an extension unlocks a built-in card and brings what it runs on (Jupyter)', () => {

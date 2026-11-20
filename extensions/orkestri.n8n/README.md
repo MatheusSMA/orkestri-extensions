@@ -26,6 +26,14 @@ create and run workflows and read their executions (`AGENTS.md`).
   long), Executar, Publicar / Despublicar and "Abrir no n8n" (the editor, signed in, at that workflow). It reads the
   workflow again every 5 s while it is shown. `launch.js` answers it (`items`, `item`, the actions), in the app's
   language.
+- **Blocks** (1.2.0): every node type n8n has (its own catalogue, read once per start and kept on disk per n8n
+  version) is a block of the canvas: Adicionar › Blocos do n8n (Buscar bloco…, the common ones, each category). A
+  block's form is made from the node's own description (fields shown as n8n shows them; anything nested is JSON text,
+  checked); its credential is one of n8n's, a new one made in the block (simple types) or n8n's page (OAuth). Linked
+  blocks make a chain, and a chain is one workflow, made once and updated in place as blocks change; Run (on any
+  block) runs it, each block showing its node's last output. A workflow card lays an existing workflow out as blocks
+  (Montar como blocos). `launch.js` answers `types`, `type`, `credentials`, `credential-type`, `credential-new`,
+  `sync`, `flow`, `export` for Orkestri.
 - **The account:** n8n requires an owner account. The extension sets up a local one through n8n's own
   `N8N_INSTANCE_OWNER_*` settings (`owner@orkestri.local`, a random password kept in `owner.json` of the extension's
   data folder) and signs the card in with it, so the editor opens directly. Only the card is signed in: it gets a

@@ -1,7 +1,7 @@
 {
-  "version": "1.1.0",
-  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-20-n8n-1.1.0/orkestri.n8n-1.1.0.zip",
-  "size": 19954,
-  "sha256": "ebb256685f617b4d42d211c5ca92438d639040b1bc59b3e78f5b1757a4d53458",
-  "signature": "gVyHDIcuYoYiIQ+jkX2qPGX83gfpfHIBU2ElVJxIwmCwseWvhR8jmhSZeq/Ztj1a/ciJJiL26JwgXL+dk7aoDw=="
+  "version": "1.2.0",
+  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-20-n8n-1.2.0/orkestri.n8n-1.2.0.zip",
+  "size": 23333,
+  "sha256": "545ad584c1afc2f1283cd26d6415cd0b61e9b861c97c48b87d394ccf628336ae",
+  "signature": "8lMSR1LqmsNwP4GftLx4jGEuygo+C9GriUmIXn0QvBtCDXihl52dGmpJIwsm93V9mHm6meJaUs8MJd+fTPhKCw=="
 }

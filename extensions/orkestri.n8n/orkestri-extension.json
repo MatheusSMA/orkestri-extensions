@@ -1,9 +1,9 @@
 {
   "id": "orkestri.n8n",
   "name": "n8n",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "publisher": "orkestri",
-  "description": "n8n, the workflow automation tool (fair-code, Sustainable Use License), on this computer only and kept on while the extension is on: its editor in a card, a native card per workflow (state, last run, run, publish); linked terminals create, run and read workflows. Uses the computer's Node.js 24 or the official portable Node.js 24.22.3 (36 MB, pinned sha256), then installs n8n 2.48.6 from npm into Orkestri's profile (about 2.6 GB, a few minutes). Not made or endorsed by n8n GmbH.",
+  "description": "n8n, the workflow automation tool (fair-code, Sustainable Use License), on this computer only and kept on while the extension is on: build workflows on the canvas from n8n's own nodes as blocks, a card per workflow, its editor in a card; linked terminals build, run and read them. Uses the computer's Node.js 24 or the official portable Node.js 24.22.3 (pinned sha256), then installs n8n 2.48.6 from npm into Orkestri's profile (about 2.6 GB). Not made or endorsed by n8n GmbH.",
   "minAppVersion": "0.1.11",
   "icon": "icon.png",
   "kinds": ["app"],
@@ -35,6 +35,7 @@
         "service": true
       },
       { "id": "workflow", "name": "Workflow do n8n", "icon": "zap", "item": "n8n" }
-    ]
+    ],
+    "cards": [{ "id": "block", "kind": "serviceBlock", "service": "n8n" }]
   }
 }

@@ -22,7 +22,7 @@ const MAX_PACKAGE = 50 << 20, MAX_UNPACKED = 200 << 20, MAX_TEXT = 256 << 10, MA
 const KINDS = ['contributions', 'app', 'plugin'];
 // The built-in card kinds an extension unlocks (`contributes.cards`): Orkestri draws them, the extension brings what
 // they run on (the notebook cells: a Python with ipykernel).
-const CARDS = ['notebookCell'];
+const CARDS = ['notebookCell', 'serviceBlock'];
 const PERMISSIONS = ['process', 'localhost', 'network', 'files'];
 const THEME_TOKENS = [
   'background', 'canvas_bg', 'grid_line', 'bg', 'bg_elevated', 'bg_hover', 'bg_active', 'fg', 'fg_muted', 'fg_subtle', 'border',
@@ -158,6 +158,11 @@ function validate(m, files) {
         named('id');
         short('name', 200);
         if (typeof item.command !== 'string' || bytes(item.command) > 2000) fail('contributes.terminalPresets: command must be a text');
+      } else if (key === 'cards' && isObject(item) && item.kind === 'serviceBlock') {
+        // Blocks of a service app of the package (BUGS #110, n8n's nodes): its controller answers all they need.
+        named('id');
+        const service = (m.contributes.apps ?? []).some((a) => isObject(a) && a.id === item.service && a.service === true);
+        if (!service || Object.keys(item).some((k) => !['id', 'kind', 'service'].includes(k))) fail('contributes.cards: a serviceBlock card is { id, kind, service }, service a service app of the package');
       } else if (key === 'cards') {
         // A built-in card kind it unlocks and what that card runs on, prepared as an app's program (download, setup).
         named('id');
