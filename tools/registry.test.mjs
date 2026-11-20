@@ -201,4 +201,10 @@ test('cards: an extension unlocks a built-in card and brings what it runs on (Ju
   assert.ok(surprises(null, jupyter).includes(`card python (notebookCell) downloads a program: ${python.url} (sha256 ${python.sha256})`));
   assert.ok(surprises(null, jupyter).includes('card python (notebookCell) runs a new command: ${appPath}/python.exe -m pip install ipykernel==7.4.0'));
   assert.deepEqual(surprises(jupyter, jupyter), ['can reach the internet (network)']);
+  // Or a folder of the package holding what it runs on (its Python, shipped inside).
+  const inside = { ...jupyter, contributes: { cards: [{ id: 'python', kind: 'notebookCell', path: 'python' }] } };
+  validate(inside, new Map([...files, ['python/python.exe', Buffer.from('MZ')]]));
+  assert.throws(() => validate(inside, files), /path must be a folder of the package/);
+  assert.throws(() => validate({ ...inside, contributes: { cards: [{ id: 'python', kind: 'notebookCell', path: '../python' }] } }, files), /inside|outside|path/);
+  assert.throws(() => validate({ ...inside, contributes: { cards: [{ id: 'python', kind: 'notebookCell', path: 'python', download: python }] } }, new Map([...files, ['python/python.exe', Buffer.from('MZ')]])), /instead of/);
 });

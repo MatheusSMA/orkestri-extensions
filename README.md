@@ -92,7 +92,7 @@ unknown key, kind, permission, contribution or colour token is refused, not igno
 | `terminalPresets` | contributions | `id`, `name`, `command`, optional `icon` |
 | `prompts` | contributions | `name`, optional `description`, `file` (a UTF-8 file inside the package, up to 256 KB) |
 | `apps` | app | `id`, `name`, `command`, `args`, optional `env`, `cwd`, `port` (`"auto"` or 1024–65535), `health` and `path` (start with `/`), `startTimeoutMs` (at most 300000), `icon` (required: the Lucide glyph of its row in the canvas's Adicionar menu and of its card), `setup`, `download`, `runtime` (below); for a window app also `window`, `defaults`, `openFolder` (below) |
-| `cards` | app | `id`, `kind` (a card Orkestri draws itself that the extension unlocks: `notebookCell`), optional `download` and `setup` (what that card runs on, below) |
+| `cards` | app | `id`, `kind` (a card Orkestri draws itself that the extension unlocks: `notebookCell`), and what that card runs on: `path` (a folder of the package), or `download` and `setup` (below) |
 
 Theme tokens: `background`, `canvas_bg`, `grid_line`, `bg`, `bg_elevated`, `bg_hover`, `bg_active`, `fg`, `fg_muted`,
 `fg_subtle`, `border`, `border_strong`, `accent`, `accent_soft`, `destructive`, `warning`, `success`, `sidebar_bg`,
@@ -125,15 +125,18 @@ otherwise `${appPath}` is the download's folder, or the one folder in it holding
 `cards` (Orkestri 0.1.6): some cards are Orkestri's own code (an extension cannot draw them) yet exist only for whoever
 installs the extension that unlocks them. While no installed, enabled extension names its `kind`, that card is not in
 the Adicionar menus, a card of it already on a canvas says the extension is off, and the agents' commands for it
-refuse. Its `download` and `setup` are prepared as an app's when the extension is installed or enabled, and Orkestri
-hands the folder (`${appPath}`) to the card. `orkestri.jupyter` unlocks the notebook cells and brings a portable
-Python with ipykernel:
+refuse. What the card runs on is best inside the package, `path` (Orkestri 0.1.7): installing the extension then
+only unpacks it, and the checker requires that folder in the zip. `orkestri.jupyter` 1.1.0 unlocks the notebook cells
+and carries a portable Python with ipykernel in `python/`:
 
 ```json
-"contributes": { "cards": [{ "id": "jupyter-python", "kind": "notebookCell",
-  "download": { "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261110/cpython-3.12.16%2B20261110-x86_64-pc-windows-msvc-install_only_stripped.tar.gz", "sha256": "…", "size": 22365213, "version": "3.12.16", "strip": 1 },
-  "setup": [{ "command": "${appPath}/python.exe", "args": ["-m", "pip", "install", "--no-warn-script-location", "ipykernel==7.4.0"], "env": { "PYTHONNOUSERSITE": "1", "PIP_NO_CACHE_DIR": "1" } }] }] }
+"contributes": { "cards": [{ "id": "jupyter-python", "kind": "notebookCell", "path": "python" }] }
 ```
+
+Or a `download` and `setup`, prepared as an app's when the extension is installed or enabled (Jupyter 1.0.0 did that);
+Orkestri hands the folder (`${appPath}`) to the card. Keep the package within the limits (50 MB zipped, 200 MB
+unpacked): leave out bytecode caches, tests and what the card never uses, and no file may hold a path of the machine
+it was built on (a pip command launcher does).
 
 A download's file name may hold `+` and `%` (kept as written, never decoded; no `..`, no dot at its end).
 

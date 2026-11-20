@@ -156,8 +156,14 @@ function validate(m, files) {
         // A built-in card kind it unlocks and what that card runs on, prepared as an app's program (download, setup).
         named('id');
         if (!CARDS.includes(t('kind'))) fail(`contributes.cards: kind must be one of ${CARDS.join(', ')}`);
-        if (!isObject(item) || Object.keys(item).some((k) => !['id', 'kind', 'download', 'setup'].includes(k))) fail('contributes.cards: an entry is { id, kind, download, setup }');
+        if (!isObject(item) || Object.keys(item).some((k) => !['id', 'kind', 'download', 'setup', 'path'].includes(k))) fail('contributes.cards: an entry is { id, kind, download, setup } or { id, kind, path }');
         if (!permissions.includes('process')) fail('a card that runs a program needs the permission "process"');
+        // Or a folder of the package that holds it all (Jupyter's Python with ipykernel, shipped inside).
+        if (has('path')) {
+          const folder = inside(t('path'));
+          if (![...files.keys()].some((f) => f.startsWith(`${folder}/`))) fail('contributes.cards: path must be a folder of the package');
+          if (has('download') || has('setup')) fail('contributes.cards: path is instead of download and setup');
+        }
         downloadRule(key, item, permissions);
         setupRule(key, item);
       } else if (key === 'prompts') {

@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0",
-  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-19-jupyter/orkestri.jupyter-1.0.0.zip",
-  "size": 6467,
-  "sha256": "50b780827ee7814404560c42865a6ee634eaad44b77f76c6395d5dec8b6a10ba",
-  "signature": "lTFZYowS21Bru2KSSBsz5oaxMlF/GSxpC5Hurb5b2go6dXhfqHE0H+kSLjICNVibtYYBZ2V/S/pw+vgfOhf4Cg=="
+  "version": "1.1.0",
+  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-19-jupyter-1.1.0/orkestri.jupyter-1.1.0.zip",
+  "size": 17923069,
+  "sha256": "50cf5aaabbabc1376029807ef1fdf728b913b38ab3ccb1dad5f7661b489888e3",
+  "signature": "4lkd1BWQsO6UVbW9tUO//fDv6RSnZPgcEj845nUMK8kh1bT8BzE8N6P+klRIifiOJa0CZ9XfKW/EEL3EcfwDBA=="
 }
