@@ -91,7 +91,7 @@ unknown key, kind, permission, contribution or colour token is refused, not igno
 
 | Key | Kind | Fields |
 | --- | --- | --- |
-| `themes` | contributions | `id`, `label`, `base` (`light` or `dark`), `colors`: tokens over the base, each `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa` |
+| `themes` | contributions | `id`, `label`, `base` (`light` or `dark`), `colors`: tokens over the base, each `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa`; optional `backdrop` (behind the canvas's grid) and `terminalBackdrop` (behind the terminals' text): `{ "template": "<drift, bokeh, aurora, stars, rain, waves, pulse or ripples>" }` or `{ "file": "<png, jpg, jpeg, webp, gif or mp4 of the package, 20 MB at most>" }`, with `fit` (`cover`, `contain`, `stretch`), `dim` (0 to 1), `blur` (0 to 40, still pictures) and `grid` (`true`/`false`); the file must be in the package (Orkestri's docs/themes.md, "Backdrops") |
 | `terminalPresets` | contributions | `id`, `name`, `command`, optional `icon` |
 | `prompts` | contributions | `name`, optional `description`, `file` (a UTF-8 file inside the package, up to 256 KB) |
 | `apps` | app | `id`, `name`, `command`, `args`, optional `env`, `cwd`, `port` (`"auto"` or 1024–65535), `health` and `path` (start with `/`), `startTimeoutMs` (at most 300000), `icon` (required: the Lucide glyph of its row in the canvas's Adicionar menu and of its card), `setup`, `download`, `runtime`, `controller` (below); for a window app also `window`, `defaults`, `openFolder`, `zoom`, `typeRun`, `kind` (below) |
@@ -241,7 +241,8 @@ them, and answer the rest with `<op> is not offered by this program: only …`.
   with its source and no path of your machine (build with `--remap-path-prefix`).
 
 Packages: at most 50 MB zipped and 200 MB unpacked; no links, no absolute paths or `..`; a `contributions` package
-holds only data files (`.json`, `.md`, `.png`, `.svg`, `.txt`).
+holds only data files (`.json`, `.md`, `.png`, `.svg`, `.txt`) and the files its themes' backdrops name (`.png`,
+`.jpg`, `.jpeg`, `.webp`, `.gif`, `.mp4`, 20 MB each).
 
 ## Terminal plugins
 

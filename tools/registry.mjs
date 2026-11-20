@@ -38,6 +38,11 @@ const MAX_MANIFEST_ICON = 64 << 10;
 const RELEASE_KEYS = ['version', 'package', 'size', 'sha256', 'signature'];
 const FOLDER_FILES = [MANIFEST, 'README.md', 'icon.png', 'release.json', 'CHANGELOG.md'];
 const DATA_FILE = /\.(json|md|png|svg|txt)$/i;
+// A theme's backdrop (Orkestri BUGS #118): one of the animated templates Orkestri draws, or a picture or video of the
+// package, 20 MB at most each (the app's ork_ext rules).
+const BACKDROP_TEMPLATES = ['drift', 'bokeh', 'aurora', 'stars', 'rain', 'waves', 'pulse', 'ripples'];
+const BACKDROP_FILE = /\.(png|jpe?g|webp|gif|mp4)$/i;
+const MAX_BACKDROP = 20 << 20;
 const HOST_FLAGS = ['--host', '--bind', '--listen', '--address', '--ip', '-b', '-h'];
 const PNG = Buffer.from('89504e470d0a1a0a', 'hex');
 const SPKI = Buffer.from('302a300506032b6570032100', 'hex');
@@ -91,6 +96,36 @@ function inside(rel) {
   const parts = rel.split(/[\\/]/);
   if (!rel || parts.some((p) => !p || p === '.' || p === '..' || p.includes(':'))) fail(`path ${JSON.stringify(rel)} must stay inside the extension`);
   return parts.join('/');
+}
+
+// A theme's backdrop at `at`: `{ template | file, fit, dim, blur, grid }`. Answers its file's path, if it names one.
+function backdrop(b, files, at) {
+  if (!isObject(b)) fail(`${at}: must be an object`);
+  const key = Object.keys(b).find((k) => !['template', 'file', 'fit', 'dim', 'blur', 'grid'].includes(k));
+  if (key) fail(`${at}: unknown key ${JSON.stringify(key)}`);
+  if (('template' in b) === ('file' in b)) fail(`${at}: needs a template or a file, not both`);
+  if ('template' in b && !BACKDROP_TEMPLATES.includes(b.template)) fail(`${at}: unknown template ${JSON.stringify(b.template)} (one of ${BACKDROP_TEMPLATES.join(', ')})`);
+  let file = null;
+  if ('file' in b) {
+    file = inside(typeof b.file === 'string' ? b.file : '');
+    if (!BACKDROP_FILE.test(file)) fail(`${at}: file must be png, jpg, jpeg, webp, gif or mp4`);
+    const data = files.get(file) ?? fail(`${at}: ${file} is missing`);
+    if (data.length > MAX_BACKDROP) fail(`${at}: ${file} is larger than ${MAX_BACKDROP >> 20} MB`);
+  }
+  if ('fit' in b && !['cover', 'contain', 'stretch'].includes(b.fit)) fail(`${at}: fit must be cover, contain or stretch`);
+  for (const [k, max] of [['dim', 1], ['blur', 40]]) {
+    if (k in b && !(typeof b[k] === 'number' && b[k] >= 0 && b[k] <= max)) fail(`${at}: ${k} must be a number from 0 to ${max}`);
+  }
+  if ('grid' in b && typeof b.grid !== 'boolean') fail(`${at}: grid must be true or false`);
+  return file;
+}
+
+// The files a contributions package may hold: data files, and the backdrop files its themes name.
+function contents(m, files) {
+  if (m.kinds.includes('app')) return;
+  const named = new Set((m.contributes?.themes ?? []).flatMap((t) => ['backdrop', 'terminalBackdrop'].filter((k) => isObject(t?.[k]) && typeof t[k].file === 'string').map((k) => inside(t[k].file))));
+  const code = [...files.keys()].find((f) => !DATA_FILE.test(f) && !named.has(f));
+  if (code) fail(`a contributions package holds only data files (json, md, png, svg, txt) and the backdrop files its themes name (png, jpg, jpeg, webp, gif, mp4): ${code}`);
 }
 
 // `files`: the package's files by path. Throws the first broken rule.
@@ -154,6 +189,7 @@ function validate(m, files) {
           if (!THEME_TOKENS.includes(token)) fail(`contributes.themes: unknown token ${JSON.stringify(token)}`);
           if (!color(value)) fail(`contributes.themes: ${token} must be #rgb, #rgba, #rrggbb or #rrggbbaa`);
         }
+        for (const k of ['backdrop', 'terminalBackdrop']) if (has(k)) backdrop(item[k], files, `contributes.themes: ${k}`);
       } else if (key === 'terminalPresets') {
         named('id');
         short('name', 200);
@@ -416,10 +452,7 @@ async function checkExtension(id, pubs, packages) {
   const files = unzip(data);
   if (!files.get(MANIFEST)?.equals(manifestBytes)) fail(`${MANIFEST} differs from the one at the root of the package`);
   validate(m, files);
-  if (!m.kinds.includes('app')) {
-    const code = [...files.keys()].find((f) => !DATA_FILE.test(f));
-    if (code) fail(`a contributions package holds only data files (json, md, png, svg, txt): ${code}`);
-  }
+  contents(m, files);
   return { manifest: m, release: r, icon: iconOf(m, files) };
 }
 
@@ -595,7 +628,7 @@ async function index(keyFile, packages) {
   console.log(`index.json: ${JSON.parse(text).extensions.length} extension(s), signed`);
 }
 
-export { iconOf, validate, unzip, surprises };
+export { contents, iconOf, validate, unzip, surprises };
 
 // The command line, when run (the tests import the rules).
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

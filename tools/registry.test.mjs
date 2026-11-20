@@ -1,7 +1,7 @@
 // node --test tools/registry.test.mjs: the rules of registry.mjs on hand-made cases.
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { iconOf, surprises, unzip, validate } from './registry.mjs';
+import { contents, iconOf, surprises, unzip, validate } from './registry.mjs';
 
 const theme = { id: 'orkestri.sepia', name: 'Sépia', version: '1.0.0', publisher: 'orkestri', kinds: ['contributions'], icon: 'icon.png', agents: false,
   contributes: { themes: [{ id: 'sepia', label: 'Sépia', base: 'light', colors: { background: '#f4ecd8', accent: '#a0522d' } }],
@@ -46,6 +46,15 @@ function zip(entries) {
   return Buffer.concat([...locals, directory, end]);
 }
 
+test('a contributions package holds data files and the backdrop files its themes name', () => {
+  const pkg = (extra) => new Map([['orkestri-extension.json', Buffer.from('{}')], ['README.md', Buffer.from('x')], ...extra]);
+  const named = { ...theme, contributes: { themes: [{ id: 'x', label: 'X', base: 'dark', colors: {}, backdrop: { file: 'media/sea.mp4' }, terminalBackdrop: { file: 'media\\still.jpg' } }] } };
+  contents(named, pkg([['media/sea.mp4', Buffer.alloc(1)], ['media/still.jpg', Buffer.alloc(1)]]));
+  assert.throws(() => contents(theme, pkg([['media/sea.mp4', Buffer.alloc(1)]])), /only data files .*media\/sea\.mp4/);
+  assert.throws(() => contents(named, pkg([['media/sea.mp4', Buffer.alloc(1)], ['run.exe', Buffer.alloc(1)]])), /run\.exe/);
+  contents(app, pkg([['bin/server.exe', Buffer.alloc(1)]]));
+});
+
 test('manifest rules', () => {
   validate(theme, files);
   validate(app, files);
@@ -63,6 +72,16 @@ test('manifest rules', () => {
   for (const authorUrl of ['http://example.com', 'example.com', 1]) refuses({ authorUrl }, 'authorUrl');
   refuses({ contributes: { themes: [{ id: 'x', label: 'X', base: 'light', colors: { font: '#fff' } }] } }, 'unknown token');
   refuses({ contributes: { themes: [{ id: 'x', label: 'X', base: 'light', colors: { fg: 'red' } }] } }, '#rgb');
+  // A theme's backdrop (Orkestri BUGS #118): a template Orkestri draws, or a picture or video of the package.
+  const media = new Map([...files, ['media/sea.mp4', Buffer.from('mp4')], ['media/big.webp', Buffer.alloc((20 << 20) + 1)]]);
+  const themed = (b, k = 'backdrop') => ({ ...theme, contributes: { themes: [{ id: 'x', label: 'X', base: 'dark', colors: {}, [k]: b }] } });
+  validate(themed({ template: 'aurora', dim: 0.4, grid: false }), media);
+  validate(themed({ file: 'media/sea.mp4', fit: 'contain', blur: 0 }, 'terminalBackdrop'), media);
+  for (const [b, text] of [[{ template: 'sunset' }, 'unknown template'], [{ file: 'media/gone.png' }, 'is missing'], [{ file: '../x.png' }, 'inside'],
+    [{ file: 'run.exe' }, 'png, jpg'], [{ file: 'media/big.webp' }, 'larger than 20 MB'], [{ template: 'rain', file: 'media/sea.mp4' }, 'not both'],
+    [{ template: 'rain', dim: 2 }, 'dim'], [{ template: 'rain', fit: 'tile' }, 'fit'], [{ template: 'rain', sound: true }, 'unknown key'], ['rain', 'object']]) {
+    assert.throws(() => validate(themed(b), media), (e) => e.message.includes(text), text);
+  }
   refuses({ contributes: { prompts: [{ name: 'X', file: '../secret.md' }] } }, 'inside');
   refuses({ contributes: { prompts: [{ name: 'X', file: 'C:/secret.md' }] } }, 'inside');
   refuses({ contributes: { prompts: [{ name: 'X', file: 'prompts/none.md' }] } }, 'missing');
