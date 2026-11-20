@@ -178,6 +178,14 @@ function validate(m, files) {
         short('name', 200);
         const file = files.get(inside(t('file'))) ?? fail(`contributes.prompts: ${t('file')} is missing`);
         if (file.length > MAX_TEXT || !utf8(file)) fail(`contributes.prompts: ${t('file')} must be UTF-8 text up to 256 KB`);
+      } else if (has('item')) {
+        // An item card (BUGS #102), drawn by Orkestri, of one thing a service app of the package holds (an n8n
+        // workflow): its data and actions are that service's controller's, it runs nothing of its own.
+        named('id');
+        short('name', 100);
+        const service = items.some((a) => isObject(a) && a.id === item.item && a.service === true);
+        if (!service || Object.keys(item).some((k) => !['id', 'name', 'icon', 'item'].includes(k))) fail('contributes.apps: item names a service app of the package ("service": true); an item app is { id, name, icon, item }');
+        if (!(typeof item.icon === 'string' && word(item.icon))) fail('contributes.apps: icon must be a glyph name (the canvas menu and the card show it)');
       } else {
         named('id');
         short('name', 100);
@@ -227,6 +235,8 @@ function validate(m, files) {
         // offers only declared primitives, `typeRun` (a window app with no API, Alacritty: `run` types the line).
         if (has('controller') && item.controller !== 'bridge' && !commandLine(item.controller)) fail('contributes.apps: controller must be "bridge" or { command, args, env }');
         if (has('typeRun') && (item.typeRun !== true || !window)) fail('contributes.apps: typeRun must be true, of a window app');
+        // Rule (BUGS #102): a service runs while its extension is on, whatever cards there are.
+        if (has('service') && (item.service !== true || window)) fail('contributes.apps: service must be true, of a web app');
         // Rule (BUGS #97, #98): a terminal is an Orkestri terminal (linked, listed, asked), so an ask needs a way in, its
         // controller's `write` or typed (`typeRun`), and its manual a section on Orkestri inside it.
         if (has('kind')) {

@@ -184,6 +184,13 @@ card. Their extra keys:
 - `typeRun: true` (Orkestri 0.1.4): a program with no API (Alacritty on Windows): `run` types the line and Enter into
   its window. The one primitive Orkestri offers for agents; anything else is the package's controller.
 - `kind: "terminal"` (Orkestri 0.1.9): the program is a terminal, and its card a full Orkestri terminal (below).
+- `service: true` (Orkestri 0.1.11), of a web app: it runs while its extension is on, whatever cards there are,
+  started once per session and kept warm for every card and agent (n8n). An **item app** `{ "id", "name", "icon",
+  "item": "<a service app's id>" }` is a small card Orkestri draws for one thing that service holds (an n8n workflow),
+  no page and no program: the service's controller answers `items` (`[{ "ref", "title" }]`), `item <ref>` (`{ "title",
+  "lines": [{ "text", "tone" }], "actions": [{ "op", "label" }], "open": "/path" }`, `${token}` in `open` filled by
+  Orkestri) and each action's `op <ref>`; a linked terminal's `orkestri code "<card>" <op>` reaches the service with the
+  card's item as the first argument.
 
 ## Write a controller
 

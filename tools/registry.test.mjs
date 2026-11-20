@@ -213,6 +213,18 @@ test('web apps: a runtime of the computer or its download (n8n on Node.js)', () 
   assert.ok(!surprises(n8n, n8n).some((s) => s.includes('runtime') || s.includes('own node.exe')));
 });
 
+test('services and item cards: n8n kept on, a card per workflow (BUGS #102)', () => {
+  const server = { ...app.contributes.apps[0], controller: 'bridge', service: true };
+  const flow = { id: 'workflow', name: 'Workflow', icon: 'zap', item: 'server' };
+  const with_ = (apps) => ({ ...app, contributes: { apps } });
+  validate(with_([server, flow]), files);
+  assert.throws(() => validate(with_([{ ...server, service: 'yes' }, flow]), files), /service must be/);
+  assert.throws(() => validate(with_([{ ...server, window: true, service: true }]), files), /service must be|permission|window/);
+  const { service, ...plain } = server;
+  assert.throws(() => validate(with_([plain, flow]), files), /item names a service/);
+  for (const bad of [{ item: 'nope' }, { command: 'x' }, { icon: 'Zap!' }]) assert.throws(() => validate(with_([server, { ...flow, ...bad }]), files), /item|icon/, JSON.stringify(bad));
+});
+
 test('cards: an extension unlocks a built-in card and brings what it runs on (Jupyter)', () => {
   const python = { url: 'https://github.com/x/y/releases/download/1/cpython-3.12.16%2B20261110-install_only_stripped.tar.gz', sha256: 'c'.repeat(64), size: 10, version: '3.12.16', strip: 1 };
   const setup = [{ command: '${appPath}/python.exe', args: ['-m', 'pip', 'install', 'ipykernel==7.4.0'], env: { PIP_NO_CACHE_DIR: '1' } }];
