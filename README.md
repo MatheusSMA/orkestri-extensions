@@ -179,6 +179,10 @@ when it:
 - changes a publisher's key or GitHub account, removes something, or touches files outside `extensions/` and
   `publishers/`.
 
+Reviewing an app, a maintainer also checks that its program never takes the foreground by itself, makes itself
+topmost, hooks the mouse or keyboard globally, or opens windows outside its card (see Contributing: the mouse only
+after a click).
+
 ## Signing
 
 Two signatures, both ed25519 over exact bytes:
@@ -213,6 +217,10 @@ package again when it installs it.
   named in your publisher file: CI refuses changes to an extension from any other account.
 - Keep packages small and self-contained: no telemetry, nothing downloaded at install, no personal data, no machine
   paths. An app that downloads something on its first start says so in its description.
+- **The mouse only after a click.** Whatever a package shows in a card gets no mouse input until the person selects
+  that card; Orkestri enforces it, a package cannot opt out. Its program must not take the foreground by itself, make
+  itself topmost, hook the mouse or keyboard globally, or open windows outside its card. A package that does is taken
+  out of the registry.
 - A new version: a new zip at a new address, then `node tools/registry.mjs add` again; describe what changed in the
   pull request (and in `CHANGELOG.md` if you keep one).
 - Reporting a problem with an extension (it misbehaves, asks for more than it needs): open an issue naming its id and
