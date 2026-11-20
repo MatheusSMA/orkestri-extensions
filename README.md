@@ -16,6 +16,7 @@ publisher's signature match the index.
 | [`orkestri.warp-oss`](extensions/orkestri.warp-oss) | Warp (open-source build): Warp's AGPL client, built by this repository's `build-warp` workflow (`tools/warp/`), in a card as its own window, one per card; not made or endorsed by Warp. The build's release holds its source |
 | [`orkestri.files`](extensions/orkestri.files) | A sample app: a local static page served by Python in a card |
 | [`orkestri.n8n`](extensions/orkestri.n8n) | [n8n](https://n8n.io) (fair-code, Sustainable Use License) on this computer only, its editor in a card; linked terminals list, create and run workflows. Uses the computer's Node.js 24 or the official portable one, then installs n8n from npm into Orkestri's profile. Not made or endorsed by n8n GmbH |
+| [`orkestri.drawio`](extensions/orkestri.drawio) | [draw.io](https://www.drawio.com) (diagrams.net, Apache-2.0) in a card, each card a diagram file of the workspace saved as you draw; linked terminals add shapes and arrows, read, load, import Mermaid or CSV and export PNG, SVG or PDF. Downloads draw.io's official `draw.war` when installed, then runs offline. Not made or endorsed by JGraph |
 
 ## Layout
 
@@ -156,12 +157,22 @@ with its last card). Make its `health` answer at once with a page that waits for
 (`{ "id", "op", "args", "cwd" }` → `{ "id", "ok": true, "text" }` or `{ "id", "ok": false, "error" }`) can be the
 app's controller (`"controller": "bridge"`, below); say which ops in the `agents` manual.
 
+**A page per card** (Orkestri 0.1.12): a web app whose `path` names `${card}` gives each card a page of its own
+(`orkestri.drawio`: a card is a diagram file). Orkestri fills `${card}` (the card's id, which the controller also gets as
+`ORKESTRI_CARD`), `${folder}` (its workspace's folder, percent-encoded) and `${theme}` (`light` or `dark`), and Abrir or
+the Adicionar row make a new card each time. One program still serves all the cards. Turn the token into a cookie and
+redirect to an address without it, as `orkestri.n8n` and `orkestri.drawio` do: the card shows its address.
+
+```json
+"path": "/orkestri/open?t=${token}&card=${card}&folder=${folder}&theme=${theme}"
+```
+
 **Window apps** (`"window": true`) show the program's own window in a card instead of a web page: no port, no server,
 and they need only `process`. Orkestri catches the window as it is created, strips its frame and keeps it over the
 card. Their extra keys:
 
 - `download`: `{ "url": "https://…", "sha256": "<64 lower-case hex>", "size": <bytes>, "version": "<folder name>" }`,
-  the program's archive (zip), fetched when the extension is installed, checked against its size and sha256 and unpacked into the
+  the program's archive (zip, or a `.war` since Orkestri 0.1.12), fetched when the extension is installed, checked against its size and sha256 and unpacked into the
   profile's `apps\<app id>\<version>`; `${appPath}` is that folder. Needs `network`. The package itself never carries
   the program.
 - `defaults`: a folder of the package whose files are copied into `${instancePath}` when they are not there yet (first

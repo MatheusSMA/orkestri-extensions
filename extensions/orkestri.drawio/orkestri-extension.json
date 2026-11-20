@@ -1,0 +1,36 @@
+{
+  "id": "orkestri.drawio",
+  "name": "draw.io",
+  "version": "1.0.0",
+  "publisher": "orkestri",
+  "author": "JGraph Ltd",
+  "authorUrl": "https://github.com/jgraph/drawio",
+  "description": "draw.io (diagrams.net, Apache-2.0) in a card: each card is a diagram file in the workspace's folder (.drawio, .dio, .xml, or a draw.io PNG or SVG), saved as you draw; linked terminals load, read and draw in it (shapes, arrows, text, Mermaid, CSV) and export PNG, SVG or PDF. Installing it downloads draw.io 32.7.4's official web app (draw.war, 49 MB, from its GitHub release, pinned sha256); it then runs offline on this computer. Not made or endorsed by JGraph.",
+  "minAppVersion": "0.1.12",
+  "icon": "icon.png",
+  "kinds": ["app"],
+  "permissions": ["process", "localhost", "network", "files"],
+  "agents": { "manual": "AGENTS.md" },
+  "contributes": {
+    "apps": [
+      {
+        "id": "drawio",
+        "name": "draw.io",
+        "icon": "waypoints",
+        "download": {
+          "url": "https://github.com/jgraph/drawio/releases/download/v32.7.4/draw.war",
+          "sha256": "caf784637155f444e0b6fb7c154cae5dbad27cfc31cb16286054d43f996be42f",
+          "size": 51194251,
+          "version": "32.7.4"
+        },
+        "command": "${extensionPath}/drawio.exe",
+        "args": ["serve", "${port}", "${token}", "${appPath}", "${dataPath}", "${extensionPath}/page"],
+        "port": "auto",
+        "health": "/orkestri/health",
+        "path": "/orkestri/open?t=${token}&card=${card}&folder=${folder}&theme=${theme}",
+        "startTimeoutMs": 15000,
+        "controller": { "command": "${extensionPath}/drawio.exe", "args": ["op"] }
+      }
+    ]
+  }
+}
