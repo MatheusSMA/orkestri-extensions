@@ -9,6 +9,9 @@ publisher's signature match the index.
 | [`orkestri.sepia`](extensions/orkestri.sepia) | A warm paper theme |
 | [`orkestri.lucid-volcano`](extensions/orkestri.lucid-volcano) | Two dark themes, Lava and Magma, with a pink-red accent: the palette of [Lucid Volcano](https://marketplace.visualstudio.com/items?itemName=MarcosGabriel.lucid-volcano) by Marcos Gabriel (its colours only; the original states no licence) |
 | [`orkestri.vscodium`](extensions/orkestri.vscodium) | VSCodium (MIT) inside a card as its own window, no server; the portable build is downloaded on first start and checked against its pinned sha256 |
+| [`orkestri.zed`](extensions/orkestri.zed) | Zed (open source) inside a card as its own window, one per card; the official build is downloaded when installed and checked against its pinned sha256 |
+| [`orkestri.wezterm`](extensions/orkestri.wezterm) | WezTerm (MIT) inside a card as its own window, one per card, its text following the canvas zoom; linked terminals run command lines in it and read its screen |
+| [`orkestri.alacritty`](extensions/orkestri.alacritty) | Alacritty (Apache-2.0 or MIT) inside a card as its own window, one per card, its text following the canvas zoom; linked terminals type command lines into it |
 | [`orkestri.files`](extensions/orkestri.files) | A sample app: a local static page served by Python in a card |
 
 ## Layout
@@ -113,6 +116,23 @@ card. Their extra keys:
   `${instancePath}` (`${dataPath}\instances\<card>`): point the program's data there to keep two cards apart.
 - `openFolder`: the arguments that open a folder in the running program (`${folder}`: the workspace's working folder),
   run as a second start of `command`; the card's "Abrir pasta".
+- `strip` in a `download` (0 to 3): leading folders of the archive dropped as it is unpacked (WezTerm's zip wraps
+  everything in one folder).
+- `zoom` (Orkestri 0.1.3): `{ "file": "<relative path in ${instancePath}>", "sizes": { "<key>": <size at zoom 1> } }`,
+  a file the program reloads by itself where Orkestri writes the font sizes as the canvas zooms; a `.toml` file holds
+  only the sizes, `"font.size"` under `[font]` (Alacritty imports it).
+- `cli` (Orkestri 0.1.4): agents through the program's own command line: `{ "command", "env", "run", "read" }`, with
+  `${appPath}`, `${pid}` (the card's program), `${userProfile}` (the person's profile folder) and `${text}` (the line
+  `run` sends):
+
+  ```json
+  "cli": { "command": "${appPath}/wezterm.exe",
+           "env": { "WEZTERM_UNIX_SOCKET": "${userProfile}/.local/share/wezterm/gui-sock-${pid}" },
+           "run": ["cli", "--no-auto-start", "send-text", "--no-paste", "${text}"],
+           "read": ["cli", "--no-auto-start", "get-text"] }
+  ```
+- `typeRun: true` (Orkestri 0.1.4): a program with no API (Alacritty on Windows): `run` types the line and Enter into
+  its window.
 
 Packages: at most 50 MB zipped and 200 MB unpacked; no links, no absolute paths or `..`; a `contributions` package
 holds only data files (`.json`, `.md`, `.png`, `.svg`, `.txt`).

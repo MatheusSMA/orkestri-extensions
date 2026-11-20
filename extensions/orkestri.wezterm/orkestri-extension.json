@@ -1,0 +1,71 @@
+{
+  "id": "orkestri.wezterm",
+  "name": "WezTerm",
+  "version": "1.0.0",
+  "publisher": "orkestri",
+  "description": "WezTerm, the open-source terminal written in Rust (MIT), as its own window inside a card, one per card; the terminals linked to it type command lines into it and read its screen. Installing it downloads WezTerm 20240203-110809-5046fc22 for Windows (66 MB, its portable zip from WezTerm's GitHub release, checked against the pinned sha256).",
+  "minAppVersion": "0.1.4",
+  "icon": "icon.png",
+  "kinds": [
+    "app"
+  ],
+  "permissions": [
+    "process",
+    "network",
+    "files"
+  ],
+  "agents": {
+    "manual": "AGENTS.md"
+  },
+  "contributes": {
+    "apps": [
+      {
+        "id": "wezterm",
+        "name": "WezTerm",
+        "icon": "square-terminal",
+        "window": true,
+        "download": {
+          "url": "https://github.com/wezterm/wezterm/releases/download/20240203-110809-5046fc22/WezTerm-windows-20240203-110809-5046fc22.zip",
+          "sha256": "57e5d03b585303d81e8b8e96d1230362852eb39aca92b3b29c7a42cfb82f9ac4",
+          "size": 66162319,
+          "version": "20240203",
+          "strip": 1
+        },
+        "command": "${appPath}/wezterm-gui.exe",
+        "args": [
+          "--config-file",
+          "${instancePath}/wezterm.lua",
+          "start",
+          "--always-new-process",
+          "--cwd",
+          "${folder}"
+        ],
+        "defaults": "defaults",
+        "zoom": {
+          "file": "orkestri.json",
+          "sizes": {
+            "font_size": 12
+          }
+        },
+        "cli": {
+          "command": "${appPath}/wezterm.exe",
+          "env": {
+            "WEZTERM_UNIX_SOCKET": "${userProfile}/.local/share/wezterm/gui-sock-${pid}"
+          },
+          "run": [
+            "cli",
+            "--no-auto-start",
+            "send-text",
+            "--no-paste",
+            "${text}"
+          ],
+          "read": [
+            "cli",
+            "--no-auto-start",
+            "get-text"
+          ]
+        }
+      }
+    ]
+  }
+}

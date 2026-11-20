@@ -185,7 +185,7 @@ function validate(m, files) {
           const z = item.zoom;
           const file = isObject(z) && typeof z.file === 'string' && !z.file.includes(':') && !/^[\\/]/.test(z.file) && !z.file.split(/[\\/]/).some((p) => !p || p === '.' || p === '..');
           const sizes = isObject(z) && isObject(z.sizes) && Object.keys(z.sizes).length >= 1 && Object.keys(z.sizes).length <= 8
-            && Object.entries(z.sizes).every(([k, v]) => word(k.replaceAll('_', '-')) && typeof v === 'number' && v >= 4 && v <= 100);
+            && Object.entries(z.sizes).every(([k, v]) => k.split('.').every((p) => word(p.replaceAll('_', '-'))) && typeof v === 'number' && v >= 4 && v <= 100);
           if (!window || Object.keys(z ?? {}).length !== 2 || !file || !sizes) fail('contributes.apps: zoom must be { file (a relative path), sizes (1 to 8 names to sizes 4..100) } of a window app');
         }
         if (has('openFile')) {
@@ -193,6 +193,19 @@ function validate(m, files) {
           const n = isObject(o) && typeof o.key === 'string' && /^f\d+$/.test(o.key) ? Number(o.key.slice(1)) : 0;
           if (!window || Object.keys(o ?? {}).length !== 1 || !(n >= 13 && n <= 24)) fail('contributes.apps: openFile must be { key: "f13" .. "f24" } of a window app');
         }
+        // A window app driven through its own command line (WezTerm's `wezterm cli`): the program, its env and the
+        // arguments that `run` a command line (${text}) and `read` its screen.
+        if (has('cli')) {
+          const c = item.cli;
+          const texts = (k) => !(k in c) || (Array.isArray(c[k]) && c[k].length > 0 && c[k].every((a) => typeof a === 'string'));
+          const ok = window && isObject(c) && Object.keys(c).every((k) => ['command', 'env', 'run', 'read'].includes(k))
+            && typeof c.command === 'string' && c.command.trim() && bytes(c.command) <= 2000
+            && (!('env' in c) || (isObject(c.env) && Object.values(c.env).every((v) => typeof v === 'string')))
+            && texts('run') && texts('read') && ('run' in c || 'read' in c);
+          if (!ok) fail('contributes.apps: cli must be { command, env, run, read } of a window app');
+        }
+        // A window app with no API (Alacritty on Windows): `run` types the line into its window.
+        if (has('typeRun') && (item.typeRun !== true || !window)) fail('contributes.apps: typeRun must be true, of a window app');
         const timeout = item.startTimeoutMs;
         if (has('startTimeoutMs') && !(Number.isInteger(timeout) && timeout >= 0 && timeout <= 300000)) fail('contributes.apps: startTimeoutMs must be at most 300000');
       }
@@ -221,7 +234,9 @@ const fileName = (url) => {
 };
 const validDownload = (d) => isObject(d) && typeof d.url === 'string' && d.url.startsWith('https://') && d.url.length <= 2000 && fileName(d.url) !== null
   && typeof d.sha256 === 'string' && /^[0-9a-f]{64}$/.test(d.sha256) && Number.isInteger(d.size) && d.size > 0
-  && typeof d.version === 'string' && /^[A-Za-z0-9.-]{1,40}$/.test(d.version) && !d.version.startsWith('.');
+  && typeof d.version === 'string' && /^[A-Za-z0-9.-]{1,40}$/.test(d.version) && !d.version.startsWith('.')
+  // `strip` drops that many leading folders of an archive (WezTerm's zip wraps everything in one folder).
+  && (!('strip' in d) || (Number.isInteger(d.strip) && d.strip >= 0 && d.strip <= 3));
 
 function utf8(data) {
   try {
@@ -339,7 +354,7 @@ function surprises(old, m) {
   const before = old?.permissions ?? [];
   for (const p of m.permissions ?? []) if (!before.includes(p)) out.push(`asks for a new permission: ${p}`);
   if ((m.permissions ?? []).includes('network')) out.push('can reach the internet (network)');
-  const run = (a) => JSON.stringify([a.command, a.args ?? [], a.env ?? {}, a.openFolder ?? [], a.setup ?? []]);
+  const run = (a) => JSON.stringify([a.command, a.args ?? [], a.env ?? {}, a.openFolder ?? [], a.setup ?? [], a.cli ?? null, a.typeRun ?? false]);
   const apps = new Map((old?.contributes?.apps ?? []).map((a) => [a.id, a]));
   for (const a of m.contributes?.apps ?? []) {
     const was = apps.get(a.id);

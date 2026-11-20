@@ -124,6 +124,15 @@ test('window apps: no server, a pinned download', () => {
     refuses({ zoom }, 'zoom');
   }
   for (const openFile of [{ key: 'f12' }, { key: 'ctrl-p' }, { key: 'f24', x: 1 }, 'f24']) refuses({ openFile }, 'openFile');
+  // WezTerm: an archive unpacked without its wrapping folder, and its own command line.
+  validate({ ...window, contributes: { apps: [{ ...editor, download: { ...file('w.zip'), strip: 1 }, cli: { command: '${appPath}/wezterm.exe', env: { S: '${userProfile}/s-${pid}' }, run: ['cli', '${text}'], read: ['cli', 'get-text'] } }] } }, windowFiles);
+  refuses({ download: { ...file('w.zip'), strip: 4 } }, 'download');
+  for (const cli of [{ command: 'x' }, { command: '', run: ['a'] }, { command: 'x', run: [] }, { command: 'x', run: [1] }, { command: 'x', read: ['a'], cwd: '/' }, { command: 'x', read: ['a'], env: { A: 1 } }]) refuses({ cli }, 'cli');
+  assert.ok(surprises(window, { ...window, contributes: { apps: [{ ...editor, cli: { command: 'x', read: ['y'] } }] } }).some((s) => s.startsWith('app vscodium runs a new command')));
+  // Alacritty: `run` typed into its window, its font size a `section.key` of a TOML file.
+  validate({ ...window, contributes: { apps: [{ ...editor, typeRun: true, zoom: { file: 'orkestri.toml', sizes: { 'font.size': 11 } } }] } }, windowFiles);
+  for (const typeRun of ['yes', false]) refuses({ typeRun }, 'typeRun');
+  refuses({ zoom: { file: 'o.toml', sizes: { 'font..size': 11 } } }, 'zoom');
   assert.deepEqual(surprises(null, { ...window, contributes: { apps: [{ ...editor, ...zed }] } }).filter((s) => s.includes('downloads')),
     ['app vscodium downloads a program: https://x/Zed-x86_64.exe (sha256 ' + sha + ')', 'app vscodium downloads a program: https://x/innounp-2.zip (sha256 ' + sha + ')']);
 });
