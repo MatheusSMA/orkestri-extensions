@@ -40,7 +40,7 @@ const FOLDER_FILES = [MANIFEST, 'README.md', 'icon.png', 'release.json', 'CHANGE
 const DATA_FILE = /\.(json|md|png|svg|txt)$/i;
 // A theme's backdrop (Orkestri BUGS #118): one of the animated templates Orkestri draws, or a picture or video of the
 // package, 20 MB at most each (the app's ork_ext rules).
-const BACKDROP_TEMPLATES = ['drift', 'bokeh', 'aurora', 'stars', 'rain', 'waves', 'pulse', 'ripples'];
+const BACKDROP_TEMPLATES = ['drift', 'bokeh', 'aurora', 'stars', 'rain', 'waves', 'pulse', 'ripples', 'glow'];
 const BACKDROP_FILE = /\.(png|jpe?g|webp|gif|mp4)$/i;
 const MAX_BACKDROP = 20 << 20;
 const HOST_FLAGS = ['--host', '--bind', '--listen', '--address', '--ip', '-b', '-h'];
