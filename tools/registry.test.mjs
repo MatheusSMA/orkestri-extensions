@@ -142,7 +142,7 @@ test('window apps: no server, a pinned download', () => {
   validate({ ...offers, contributes: { apps: [{ ...editor, typeRun: true }] } }, manual);
   validate({ ...offers, contributes: { apps: [editor] } }, new Map([...windowFiles, ['AGENTS.md', Buffer.from('Ask the person to open it.')]]));
   // BUGS #97, #98: a terminal: a way in for an ask, and its manual's section on Orkestri inside it.
-  const inside = new Map([...windowFiles, ['AGENTS.md', Buffer.from('# T\n\n## Orkestri inside it\n\n`orkestri list`, `orkestri ask "A" "hi"`, `orkestri reply`: typed.\n')]]);
+  const inside = new Map([...windowFiles, ['AGENTS.md', Buffer.from('# T\n\n## Orkestri inside it\n\n`orkestri list`, `orkestri ask "A" "hi"`, `orkestri reply`: typed. `orkestri draw "B" --svg b.svg`.\n')]]);
   const terminal = { ...window, agents: { manual: 'AGENTS.md' } };
   validate({ ...terminal, contributes: { apps: [{ ...editor, kind: 'terminal', typeRun: true }] } }, inside);
   validate({ ...terminal, contributes: { apps: [{ ...editor, kind: 'terminal', controller: { command: 'x' } }] } }, inside);
@@ -151,7 +151,9 @@ test('window apps: no server, a pinned download', () => {
   }
   // BUGS #108: and it calls its connections: an agent in it answers (`orkestri reply`), not only receives.
   for (const text of ['`orkestri list`, `orkestri ask`', '## Orkestri inside it\n\n`orkestri list` only', '### Orkestri inside it\n`orkestri list` `orkestri ask`',
-    '## Orkestri inside it\n\n`orkestri list`, `orkestri ask`']) {
+    '## Orkestri inside it\n\n`orkestri list`, `orkestri ask`',
+    // BUGS #116: and it draws on Orkestri's board.
+    '## Orkestri inside it\n\n`orkestri list`, `orkestri ask`, `orkestri reply`']) {
     assert.throws(() => validate({ ...terminal, contributes: { apps: [{ ...editor, kind: 'terminal', typeRun: true }] } }, new Map([...windowFiles, ['AGENTS.md', Buffer.from(text)]])), /Orkestri inside it/, text);
   }
   assert.throws(() => validate({ ...window, contributes: { apps: [{ ...editor, kind: 'terminal', typeRun: true }] } }, windowFiles), /Orkestri inside it/, 'agents false');

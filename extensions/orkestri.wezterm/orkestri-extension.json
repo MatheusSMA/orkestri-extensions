@@ -1,7 +1,7 @@
 {
   "id": "orkestri.wezterm",
   "name": "WezTerm",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "publisher": "orkestri",
   "description": "WezTerm, the open-source terminal written in Rust (MIT), as its own window inside a card, one per card; the terminals linked to it type command lines into it and read its screen. Installing it downloads WezTerm 20240203-110809-5046fc22 for Windows (66 MB, its portable zip from WezTerm's GitHub release, checked against the pinned sha256).",
   "minAppVersion": "0.1.9",

@@ -1,7 +1,7 @@
 {
-  "version": "1.1.0",
-  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-20-terminals/orkestri.alacritty-1.1.0.zip",
-  "size": 7789,
-  "sha256": "6f212fa1b5b03dafdd4c44630d9ddfc09c9e8c8d363929ad13623f1f41c150cd",
-  "signature": "6MWaekHuT8I9ykJ6tgRXTihFOOrZHXhVncaQ8H+nWm7oBsxzKV4ulaL7WEX+ERZF+7Ah9UL03Oh5gw8QXURgDg=="
+  "version": "1.1.1",
+  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-20-terminals-draw/orkestri.alacritty-1.1.1.zip",
+  "size": 7871,
+  "sha256": "c639e8243f8fe915a9135e0e96122f6b93fe78c49ef96259acddb2e7d9a7cc62",
+  "signature": "NXI7lLygOYrRsnMfl5zr5ZXV0iNDRYT1CrxaFpQtFxbhyI0kNCzz9S0ORE26I2gtESEU83Tqz+WNuqdCr9q9Ag=="
 }

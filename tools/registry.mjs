@@ -247,8 +247,9 @@ function validate(m, files) {
         if (has('kind')) {
           if (item.kind !== 'terminal' || !window || (!has('controller') && item.typeRun !== true)) fail('contributes.apps: kind must be "terminal", of a window app with a controller or typeRun (how an ask reaches it)');
           // Rule (BUGS #108): it calls its connections too (an agent in it asks and answers), not only receives.
-          if (!/^## Orkestri inside it\s*$/m.test(manualText) || !['orkestri list', 'orkestri ask', 'orkestri reply'].every((c) => manualText.includes(c))) {
-            fail('contributes.apps: a terminal needs its agents manual\'s "## Orkestri inside it" section, naming orkestri list, orkestri ask and orkestri reply (it calls its connections; how a message reaches it, whether its screen is read)');
+          // Rule (BUGS #116): and it draws on Orkestri's own board (`orkestri draw`).
+          if (!/^## Orkestri inside it\s*$/m.test(manualText) || !['orkestri list', 'orkestri ask', 'orkestri reply', 'orkestri draw'].every((c) => manualText.includes(c))) {
+            fail('contributes.apps: a terminal needs its agents manual\'s "## Orkestri inside it" section, naming orkestri list, orkestri ask, orkestri reply and orkestri draw (it calls its connections and draws on a board; how a message reaches it, whether its screen is read)');
           }
         }
         if (codeOps && !has('controller') && !has('typeRun')) fail(`contributes.apps: ${t('id')} offers its agents ops (orkestri code): it needs a controller (or only typeRun), what talks to the program comes with the package`);

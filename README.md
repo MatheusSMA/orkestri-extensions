@@ -238,7 +238,9 @@ A window app with `"kind": "terminal"` (WezTerm, Alacritty, Warp) is an Orkestri
 its card, its row in the canvas's **Terminais** menu, linked and listed as a terminal, and the communication skills
 (`orkestri list`, `ask`, `see`, `note`, `reply`) work inside it: it **calls** its connections, not only connects. CI
 refuses a terminal without a way in for an ask (its `controller` or `typeRun`) or whose `agents` manual lacks a
-`## Orkestri inside it` section naming `orkestri list`, `orkestri ask` and `orkestri reply`. The recipe:
+`## Orkestri inside it` section naming `orkestri list`, `orkestri ask`, `orkestri reply` and `orkestri draw` (an agent in
+it draws on Orkestri's own board, a white card linked to it: `orkestri draw "Fluxo" --svg fluxo.svg`).
+The recipe:
 
 1. **Pass the environment through to the shell.** Orkestri starts the program with `ORKESTRI_PIPE`,
    `ORKESTRI_TERMINAL_ID` (the card), `ORKESTRI_WORKSPACE_ID`, `ORKESTRI_CLI` (the `orkestri` command), PATH with that
