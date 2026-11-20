@@ -1,7 +1,7 @@
 {
   "id": "orkestri.zed",
   "name": "Zed",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "publisher": "orkestri",
   "description": "Zed, the open-source code editor written in Rust, as its own window inside a card, one per card. Installing it downloads the official Zed 1.29.2 for Windows x64 (62 MB, its installer from Zed's GitHub release, signed by Zed Industries and checked against the pinned sha256) and innounp, which unpacks it into Orkestri's own folder: nothing is installed on the computer.",
   "minAppVersion": "0.1.8",
@@ -65,6 +65,12 @@
               "-c{app}",
               "${appPath}/Zed-x86_64.exe",
               "{app}\\amd_ags_x64.dll"
+            ]
+          },
+          {
+            "command": "${extensionPath}/controller.exe",
+            "args": [
+              "prepare"
             ]
           }
         ],

@@ -29,7 +29,11 @@ server, no web page, no Electron.
   the file; anything else answers that it is not offered. Rebuild it after changing `controller/`:
   `cd controller && cargo build --release` (Rust 1.85 or later, no dependency), then copy
   `target/release/controller.exe` to the package folder; build with `--remap-path-prefix` so it holds no path of your
-  machine.
+  machine. It also has one step of its own, `prepare`, the package's last setup step (below).
+- **A fresh profile** (1.1.1): Zed 1.29 panics at start ("failed to determine LocalAppData directory") when
+  `%USERPROFILE%\AppData\Local` does not exist: it asks Windows for that folder whatever `--user-data-dir` says, and
+  Orkestri's profile home starts without it. The last setup step, `controller.exe prepare`, makes it (and
+  `AppData\Roaming`) in the profile's home each time the extension is installed, updated or enabled.
 - Closing the card, disabling the extension or closing Orkestri ends Zed and everything it started. Zed may leave a
   small crash-handler socket file in `%LOCALAPPDATA%\Zed`, which it always looks for there.
 - Measured (Zed 1.29.2, one card, a Markdown file open): one process, 174 MB working set, 156 MB private.
