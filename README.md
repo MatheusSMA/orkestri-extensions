@@ -7,6 +7,7 @@ publisher's signature match the index.
 | Extension | What it adds |
 | --- | --- |
 | [`orkestri.sepia`](extensions/orkestri.sepia) | A warm paper theme |
+| [`orkestri.duck-mode`](extensions/orkestri.duck-mode) | Two dark themes, Duck in the Dream and Duck in the Lake: the colours of [Duck Mode!](https://marketplace.visualstudio.com/items?itemName=MEvesalTR.duck-mode-vscode) by MEvesalTR (MIT) |
 | [`orkestri.lucid-volcano`](extensions/orkestri.lucid-volcano) | Two dark themes, Lava and Magma, with a pink-red accent: the palette of [Lucid Volcano](https://marketplace.visualstudio.com/items?itemName=MarcosGabriel.lucid-volcano) by Marcos Gabriel (its colours only; the original states no licence) |
 | [`orkestri.vscodium`](extensions/orkestri.vscodium) | VSCodium (MIT) inside a card as its own window, no server; the portable build is downloaded on first start and checked against its pinned sha256 |
 | [`orkestri.zed`](extensions/orkestri.zed) | Zed (open source) inside a card as its own window, one per card; the official build is downloaded when installed and checked against its pinned sha256 |
