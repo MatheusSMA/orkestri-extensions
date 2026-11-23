@@ -245,6 +245,17 @@ test('web apps: a runtime of the computer or its download (n8n on Node.js)', () 
   assert.ok(!surprises(n8n, n8n).some((s) => s.includes('runtime') || s.includes('own node.exe')));
 });
 
+test("window apps: the computer's own install stands for the download (Zed)", () => {
+  const zip = { url: 'https://example.com/zed.exe', sha256: 'c'.repeat(64), size: 10, version: '1.29.2' };
+  const zed = { ...app, permissions: ['process', 'localhost', 'network'], contributes: { apps: [{ ...app.contributes.apps[0], command: '${appPath}/zed/Zed.exe', download: zip, installed: ['{LocalAppData}\\Programs', '{ProgramFiles}'] }] } };
+  validate(zed, files);
+  const refuses = (patch) => assert.throws(() => validate({ ...zed, contributes: { apps: [{ ...zed.contributes.apps[0], ...patch }] } }, files), /installed/, JSON.stringify(patch));
+  for (const bad of [[], ['C:\\Tools'], ['{ProgramFiles}\\..\\x'], ['{ProgramFilesX}'], 'x']) refuses({ installed: bad });
+  refuses({ command: 'zed.exe' });
+  assert.ok(surprises(null, zed).includes("app server may run the computer's own install in {LocalAppData}\\Programs, {ProgramFiles} instead of its download"));
+  assert.ok(!surprises(zed, zed).some((s) => s.includes('own install')));
+});
+
 test('services and item cards: n8n kept on, a card per workflow (BUGS #102)', () => {
   const server = { ...app.contributes.apps[0], controller: 'bridge', service: true };
   const flow = { id: 'workflow', name: 'Workflow', icon: 'zap', item: 'server' };

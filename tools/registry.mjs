@@ -246,6 +246,13 @@ function validate(m, files) {
             && r.files.every(relative) && typeof r.version === 'string' && r.version.length >= 1 && r.version.length <= 40 && has('download');
           if (!ok) fail('contributes.apps: runtime must be { files (1 to 4 relative paths), version (the start of what --version answers) } of an app with a download');
         }
+        // The person's own install of the program (Zed in %LOCALAPPDATA%\Programs): folders that stand for ${appPath}.
+        if (has('installed')) {
+          const i = item.installed;
+          const folder = (p) => typeof p === 'string' && p.length <= 260 && ['{LocalAppData}', '{ProgramFiles}'].some((k) => p === k || p.startsWith(`${k}\\`)) && !p.split(/[\\/]/).includes('..');
+          const ok = Array.isArray(i) && i.length >= 1 && i.length <= 8 && i.every(folder) && t('command').startsWith('${appPath}') && has('download');
+          if (!ok) fail('contributes.apps: installed must be 1 to 8 folders under {LocalAppData}\\ or {ProgramFiles}\\ of an app with a download whose command is under ${appPath}');
+        }
         if (!(typeof item.icon === 'string' && word(item.icon))) fail('contributes.apps: icon must be a glyph name (the canvas menu and the card show it)');
         if (has('defaults')) {
           const folder = inside(t('defaults'));
@@ -472,6 +479,7 @@ function surprises(old, m) {
     }
     if (!local(a.args ?? [])) out.push(`app ${a.id} may serve on more than 127.0.0.1`);
     if (a.runtime && JSON.stringify(was?.runtime) !== JSON.stringify(a.runtime)) out.push(`app ${a.id} may run on the computer's own ${a.runtime.files?.[0]} (${a.runtime.version}…) instead of its download`);
+    if (a.installed && JSON.stringify(was?.installed) !== JSON.stringify(a.installed)) out.push(`app ${a.id} may run the computer's own install in ${a.installed.join(', ')} instead of its download`);
   }
   // What an unlocked card runs on: its download and its setup, read as an app's are.
   const cards = new Map((old?.contributes?.cards ?? []).map((c) => [c.id, c]));
