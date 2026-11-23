@@ -1,7 +1,7 @@
 {
-  "version": "1.1.1",
-  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-20-zed-1.1.1/orkestri.zed-1.1.1.zip",
-  "size": 88780,
-  "sha256": "8c56378585fe5ba4259806c8e26e0c4b22a17f7fa09192a70e10e4e60edac3f5",
-  "signature": "t33keYOEWGFjIaiVRMj9kfgEsRVztT3UESqo1LBBDdyLP5ixX0vInkIJX9MJHeGYlkZX6GLuItObg7MENtbOCg=="
+  "version": "1.2.0",
+  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-23-installed/orkestri.zed-1.2.0.zip",
+  "size": 88852,
+  "sha256": "0f219048114f67d92f684df9e4ad86596186b15e1ad71e364bbe965f594577c5",
+  "signature": "SS6oj1goinmt1lFX+HXX5bwoI5QKO40AIGT81TzKEzAq8jSqkXO9gHKrxS+feymnQXkCyt1XEgLJlH4yqKxBDA=="
 }
