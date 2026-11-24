@@ -273,9 +273,13 @@ function validate(m, files) {
           const file = isObject(z) && typeof z.file === 'string' && !z.file.includes(':') && !/^[\\/]/.test(z.file) && !z.file.split(/[\\/]/).some((p) => !p || p === '.' || p === '..');
           const sizes = isObject(z) && isObject(z.sizes) && Object.keys(z.sizes).length >= 1 && Object.keys(z.sizes).length <= 8
             && Object.entries(z.sizes).every(([k, v]) => key(k) && typeof v === 'number' && v >= 4 && v <= 100);
-          const known = isObject(z) && Object.keys(z).every((k) => ['file', 'sizes', 'percent'].includes(k));
-          if (!window || !known || !file || ('sizes' in z && !sizes) || ('percent' in z && !key(z.percent)) || !('sizes' in z || 'percent' in z)) {
-            fail('contributes.apps: zoom must be { file (a relative path), sizes (1 to 8 names to sizes 4..100) and/or percent (a name) } of a window app');
+          // Orkestri 0.1.30 (BUGS #218): `fixed`, up to 8 settings written as they are with the sizes (a number, a switch or a
+          // short text): Warp's tab bar only on hover.
+          const fixed = isObject(z) && isObject(z.fixed) && Object.keys(z.fixed).length >= 1 && Object.keys(z.fixed).length <= 8
+            && Object.entries(z.fixed).every(([k, v]) => key(k) && (typeof v === 'number' || typeof v === 'boolean' || (typeof v === 'string' && v.length <= 64 && !/["\\\n]/.test(v))));
+          const known = isObject(z) && Object.keys(z).every((k) => ['file', 'sizes', 'percent', 'fixed'].includes(k));
+          if (!window || !known || !file || ('sizes' in z && !sizes) || ('percent' in z && !key(z.percent)) || ('fixed' in z && !fixed) || !('sizes' in z || 'percent' in z)) {
+            fail('contributes.apps: zoom must be { file (a relative path), sizes (1 to 8 names to sizes 4..100) and/or percent (a name), fixed (1 to 8 names to plain values) } of a window app');
           }
         }
         // Rule (BUGS #94): what drives a package comes with it. Its controller (a program of the package run per op, or

@@ -147,7 +147,7 @@ test('window apps: no server, a pinned download', () => {
   refuses({ download: [] }, 'download');
   refuses({ download: ['a.zip', 'b.zip', 'c.zip', 'd.zip', 'e.zip'].map(file) }, 'download');
   refuses({ download: [file('Zed.exe'), file('')] }, 'download');
-  for (const zoom of [{ file: '../s.json', sizes: { a: 16 } }, { file: 'C:/s.json', sizes: { a: 16 } }, { file: 's.json', sizes: {} }, { file: 's.json', sizes: { a: 2 } }, { file: 's.json', sizes: { a: 16 }, x: 1 }]) {
+  for (const zoom of [{ file: '../s.json', sizes: { a: 16 } }, { file: 'C:/s.json', sizes: { a: 16 } }, { file: 's.json', sizes: {} }, { file: 's.json', sizes: { a: 2 } }, { file: 's.json', sizes: { a: 16 }, x: 1 }, { file: 's.json', percent: 'a', fixed: {} }, { file: 's.json', percent: 'a', fixed: { b: 'x"y' } }]) {
     refuses({ zoom }, 'zoom');
   }
   // WezTerm: an archive unpacked without its wrapping folder; its controller with the env Orkestri fills.
