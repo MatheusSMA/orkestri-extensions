@@ -22,7 +22,7 @@ const MAX_PACKAGE = 50 << 20, MAX_UNPACKED = 200 << 20, MAX_TEXT = 256 << 10, MA
 const KINDS = ['contributions', 'app', 'plugin'];
 // The built-in card kinds an extension unlocks (`contributes.cards`): Orkestri draws them, the extension brings what
 // they run on (the notebook cells: a Python with ipykernel).
-const CARDS = ['notebookCell', 'serviceBlock', 'docker', 'ssh', 'dictation'];
+const CARDS = ['notebookCell', 'serviceBlock', 'docker', 'ssh', 'dictation', 'music'];
 const PERMISSIONS = ['process', 'localhost', 'network', 'files'];
 const THEME_TOKENS = [
   'background', 'canvas_bg', 'grid_line', 'bg', 'bg_elevated', 'bg_hover', 'bg_active', 'fg', 'fg_muted', 'fg_subtle', 'border',
@@ -207,7 +207,7 @@ function validate(m, files) {
         if (item.os !== undefined && !['windows', 'linux'].includes(item.os)) fail('contributes.cards: os must be "windows" or "linux"');
         // What the card talks to is the package's (Jupyter's kernel.py on its own Python): Orkestri keeps it alive.
         if (!commandLine(item.controller)) fail('contributes.cards: controller must be { command, args, env } (what the card talks to comes with the package)');
-        if (!permissions.includes('process')) fail('a card that runs a program needs the permission "process"');
+        if (['controller', 'download', 'setup', 'path'].some((k) => item[k] !== undefined) && !permissions.includes('process')) fail('a card that runs a program needs the permission "process"');
         // Or a folder of the package that holds it all (Jupyter's Python with ipykernel, shipped inside).
         if (has('path')) {
           const folder = inside(t('path'));
