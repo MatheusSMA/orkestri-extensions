@@ -22,7 +22,7 @@ const MAX_PACKAGE = 50 << 20, MAX_UNPACKED = 200 << 20, MAX_TEXT = 256 << 10, MA
 const KINDS = ['contributions', 'app', 'plugin'];
 // The built-in card kinds an extension unlocks (`contributes.cards`): Orkestri draws them, the extension brings what
 // they run on (the notebook cells: a Python with ipykernel).
-const CARDS = ['notebookCell', 'serviceBlock'];
+const CARDS = ['notebookCell', 'serviceBlock', 'docker', 'ssh'];
 const PERMISSIONS = ['process', 'localhost', 'network', 'files'];
 const THEME_TOKENS = [
   'background', 'canvas_bg', 'grid_line', 'bg', 'bg_elevated', 'bg_hover', 'bg_active', 'fg', 'fg_muted', 'fg_subtle', 'border',
