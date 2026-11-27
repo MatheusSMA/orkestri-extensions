@@ -1,0 +1,30 @@
+{
+  "id": "orkestri.docker",
+  "name": "Docker",
+  "version": "1.0.0",
+  "publisher": "orkestri",
+  "description": "Your Docker containers in a card: grouped by compose project, with state, health, ports, uptime, CPU and memory; start, stop, restart, remove, logs and details, a whole project at once; images (remove, clean up dangling ones), volumes and disk use. A card per container; linked terminals start, stop, read logs and run commands. Uses the docker command of the computer (Docker Desktop or any engine docker reaches); downloads nothing. Not made or endorsed by Docker, Inc.",
+  "minAppVersion": "0.1.12",
+  "icon": "icon.png",
+  "kinds": ["app"],
+  "permissions": ["process", "localhost"],
+  "agents": { "manual": "AGENTS.md" },
+  "contributes": {
+    "apps": [
+      {
+        "id": "docker",
+        "name": "Docker",
+        "icon": "server",
+        "command": "${extensionPath}/docker-panel.exe",
+        "args": ["serve", "${port}", "${token}"],
+        "port": "auto",
+        "health": "/health",
+        "path": "/?token=${token}",
+        "startTimeoutMs": 15000,
+        "controller": { "command": "${extensionPath}/docker-panel.exe", "args": ["op"] },
+        "service": true
+      },
+      { "id": "container", "name": "Container do Docker", "icon": "box", "item": "docker" }
+    ]
+  }
+}

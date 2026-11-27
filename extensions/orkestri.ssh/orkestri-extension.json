@@ -1,0 +1,29 @@
+{
+  "id": "orkestri.ssh",
+  "name": "SSH",
+  "version": "1.0.0",
+  "publisher": "orkestri",
+  "description": "Your remote computers on the canvas, through Windows' own OpenSSH client: the hosts of your ~/.ssh/config and the ones you add, each with its state (online, system, uptime, load, memory, disk); a card per computer; linked terminals run commands on it and copy files to and from it. Key login only: no password is asked for or kept.",
+  "minAppVersion": "0.1.11",
+  "icon": "icon.png",
+  "kinds": ["app"],
+  "permissions": ["process", "localhost", "network", "files"],
+  "agents": { "manual": "AGENTS.md" },
+  "contributes": {
+    "apps": [
+      {
+        "id": "ssh",
+        "name": "SSH",
+        "icon": "server",
+        "command": "${extensionPath}/ssh-panel.exe",
+        "args": ["serve", "${port}", "${token}", "${dataPath}"],
+        "port": "auto",
+        "health": "/health",
+        "path": "/?token=${token}",
+        "controller": { "command": "${extensionPath}/ssh-panel.exe", "args": ["op"] },
+        "service": true
+      },
+      { "id": "host", "name": "Computador remoto", "icon": "monitor", "item": "ssh" }
+    ]
+  }
+}
