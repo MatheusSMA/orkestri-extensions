@@ -1,0 +1,30 @@
+{
+  "id": "orkestri.handy",
+  "name": "Handy",
+  "version": "1.0.0",
+  "publisher": "orkestri",
+  "description": "Dictation by Handy, the free open-source speech-to-text app (MIT, handy.computer): Whisper or Parakeet on this computer. Installing it downloads the official Handy 0.10.2 MSI for Windows x64 (31 MB, sha256-pinned) and unpacks it into Orkestri's own folder: nothing is installed on the computer. Settings > General > Voice > Dictation then offers Handy: the microphone button records and Handy pastes the text into the terminal's field. Not made or endorsed by Handy's authors.",
+  "minAppVersion": "0.1.81",
+  "icon": "icon.png",
+  "kinds": ["app"],
+  "permissions": ["process", "network"],
+  "agents": false,
+  "contributes": {
+    "cards": [
+      {
+        "id": "handy",
+        "kind": "dictation",
+        "download": {
+          "url": "https://github.com/cjpais/Handy/releases/download/v0.10.2/Handy_0.10.2_x64_en-US.msi",
+          "sha256": "7f42865ed359836a185ec4eabbea339bb7a54dcb1332ce6558e3781ce9927b29",
+          "size": 32935936,
+          "version": "0.10.2"
+        },
+        "setup": [
+          { "command": "msiexec", "args": ["/a", "${appPath}\\Handy_0.10.2_x64_en-US.msi", "/qn", "TARGETDIR=${appPath}\\handy"] }
+        ],
+        "controller": { "command": "${appPath}/handy/PFiles/Handy/handy.exe", "args": ["--toggle-transcription"] }
+      }
+    ]
+  }
+}
