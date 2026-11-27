@@ -206,7 +206,8 @@ function validate(m, files) {
         if (!isObject(item) || Object.keys(item).some((k) => !['id', 'kind', 'download', 'setup', 'path', 'controller', 'os'].includes(k))) fail('contributes.cards: an entry is { id, kind, download, setup, controller } or { id, kind, path, controller }');
         if (item.os !== undefined && !['windows', 'linux'].includes(item.os)) fail('contributes.cards: os must be "windows" or "linux"');
         // What the card talks to is the package's (Jupyter's kernel.py on its own Python): Orkestri keeps it alive.
-        if (!commandLine(item.controller)) fail('contributes.cards: controller must be { command, args, env } (what the card talks to comes with the package)');
+        // A card that only unlocks a feature of Orkestri (music) talks to nothing.
+        if (item.kind !== 'music' && !commandLine(item.controller)) fail('contributes.cards: controller must be { command, args, env } (what the card talks to comes with the package)');
         if (['controller', 'download', 'setup', 'path'].some((k) => item[k] !== undefined) && !permissions.includes('process')) fail('a card that runs a program needs the permission "process"');
         // Or a folder of the package that holds it all (Jupyter's Python with ipykernel, shipped inside).
         if (has('path')) {
