@@ -1,17 +1,24 @@
 {
   "id": "orkestri.music",
   "name": "Música",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publisher": "orkestri",
-  "description": "Spotify or YouTube Music in Orkestri: Adicionar > Música opens the player in a card with your own login (kept), playing on in the background; a pill in the canvas corner shows the track with back, play/pause and next; a terminal linked to the card controls it (play, pause, next, what plays). Nothing is downloaded: the services' own web players. Not made or endorsed by Spotify or Google.",
-  "minAppVersion": "0.1.90",
+  "description": "Spotify or YouTube Music in Orkestri, in a card of its own: Spotify signed in with your account (Premium plays) or YouTube Music's web player behind the card, each with what plays, back, play/pause, next, a search and a list to play from; a pill in the canvas corner (also in the UI mode) opens the whole player; a terminal linked to the card controls it (play a song or playlist, pause, next, what plays). Not made or endorsed by Spotify or Google.",
+  "minAppVersion": "0.1.93",
   "icon": "icon.png",
-  "kinds": ["app"],
+  "kinds": [
+    "app"
+  ],
   "permissions": [],
-  "agents": { "manual": "AGENTS.md" },
+  "agents": {
+    "manual": "AGENTS.md"
+  },
   "contributes": {
     "cards": [
-      { "id": "music", "kind": "music" }
+      {
+        "id": "music",
+        "kind": "music"
+      }
     ]
   }
 }
