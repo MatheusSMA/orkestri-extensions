@@ -1,29 +1,22 @@
 {
   "id": "orkestri.ssh",
   "name": "SSH",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "publisher": "orkestri",
-  "description": "Your remote computers on the canvas, through Windows' own OpenSSH client: the hosts of your ~/.ssh/config and the ones you add, each with its state (online, system, uptime, load, memory, disk); a card per computer; linked terminals run commands on it and copy files to and from it. Key login only: no password is asked for or kept.",
-  "minAppVersion": "0.1.11",
+  "description": "A remote computer in a card Orkestri draws itself: type its address or pick a host of your ~/.ssh/config, connect, see its system, uptime, load, memory and disk, open an SSH terminal beside it; linked terminals run commands and copy files there. Windows' own OpenSSH client, key login only: no password is asked for or kept.",
+  "minAppVersion": "0.1.70",
   "icon": "icon.png",
   "kinds": ["app"],
-  "permissions": ["process", "localhost", "network", "files"],
+  "permissions": ["process", "network", "files"],
   "agents": { "manual": "AGENTS.md" },
   "contributes": {
-    "apps": [
+    "cards": [
       {
         "id": "ssh",
-        "name": "SSH",
-        "icon": "server",
-        "command": "${extensionPath}/ssh-panel.exe",
-        "args": ["serve", "${port}", "${token}", "${dataPath}"],
-        "port": "auto",
-        "health": "/health",
-        "path": "/?token=${token}",
-        "controller": { "command": "${extensionPath}/ssh-panel.exe", "args": ["op"] },
-        "service": true
-      },
-      { "id": "host", "name": "Computador remoto", "icon": "monitor", "item": "ssh" }
+        "kind": "ssh",
+        "path": "bin",
+        "controller": { "command": "${appPath}/ssh-panel.exe", "args": ["stdio"] }
+      }
     ]
   }
 }

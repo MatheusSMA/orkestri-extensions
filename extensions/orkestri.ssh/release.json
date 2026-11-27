@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0",
-  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-26-docker-ssh/orkestri.ssh-1.0.0.zip",
-  "size": 233432,
-  "sha256": "d31dbe096a52f1cb773c6ea5f9054aab0b5cad3f8c529797d88f623304e03810",
-  "signature": "Sb2mpEScQpw53RFTIIMDOcQacjwPVEWgr4eF6ukVMrzDQaeFBNdEFMCOd0lRLeyQaxz519iLhMZ39I66iE0RDg=="
+  "version": "2.0.0",
+  "package": "https://github.com/MatheusSMA/orkestri-extensions/releases/download/packages-2026-11-27-docker-ssh-native/orkestri.ssh-2.0.0.zip",
+  "size": 202245,
+  "sha256": "c0cfc8441c37b2a0f97a68bd131cd6e99a939d1874ba2501cf9200d0adab8705",
+  "signature": "vHWN582ArXJgbDMxYhXoVEhzzVkNpEeV/8YyQVBhU5alPxgaQvI3DmqYhllkBYsx+tfMDHakIbnysr4Grv/nCg=="
 }
