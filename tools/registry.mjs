@@ -203,7 +203,8 @@ function validate(m, files) {
         // A built-in card kind it unlocks and what that card runs on, prepared as an app's program (download, setup).
         named('id');
         if (!CARDS.includes(t('kind'))) fail(`contributes.cards: kind must be one of ${CARDS.join(', ')}`);
-        if (!isObject(item) || Object.keys(item).some((k) => !['id', 'kind', 'download', 'setup', 'path', 'controller'].includes(k))) fail('contributes.cards: an entry is { id, kind, download, setup, controller } or { id, kind, path, controller }');
+        if (!isObject(item) || Object.keys(item).some((k) => !['id', 'kind', 'download', 'setup', 'path', 'controller', 'os'].includes(k))) fail('contributes.cards: an entry is { id, kind, download, setup, controller } or { id, kind, path, controller }');
+        if (item.os !== undefined && !['windows', 'linux'].includes(item.os)) fail('contributes.cards: os must be "windows" or "linux"');
         // What the card talks to is the package's (Jupyter's kernel.py on its own Python): Orkestri keeps it alive.
         if (!commandLine(item.controller)) fail('contributes.cards: controller must be { command, args, env } (what the card talks to comes with the package)');
         if (!permissions.includes('process')) fail('a card that runs a program needs the permission "process"');

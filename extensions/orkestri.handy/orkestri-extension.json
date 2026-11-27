@@ -1,10 +1,10 @@
 {
   "id": "orkestri.handy",
   "name": "Handy",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publisher": "orkestri",
-  "description": "Dictation by Handy, the free open-source speech-to-text app (MIT, handy.computer): Whisper or Parakeet on this computer. Installing it downloads the official Handy 0.10.2 MSI for Windows x64 (31 MB, sha256-pinned) and unpacks it into Orkestri's own folder: nothing is installed on the computer. Settings > General > Voice > Dictation then offers Handy: the microphone button records and Handy pastes the text into the terminal's field. Not made or endorsed by Handy's authors.",
-  "minAppVersion": "0.1.81",
+  "description": "Dictation by Handy, the free open-source speech-to-text app (MIT, handy.computer): Whisper or Parakeet on this computer. Installing it downloads the official Handy 0.10.2 (Windows: its MSI, 31 MB; Linux: its AppImage, 118 MB; sha256-pinned) into Orkestri's own folder: nothing is installed on the computer. Settings > General > Voice > Dictation then offers Handy: the microphone button records and Handy pastes the text into the terminal's field. Not made or endorsed by Handy's authors.",
+  "minAppVersion": "0.1.82",
   "icon": "icon.png",
   "kinds": ["app"],
   "permissions": ["process", "network"],
@@ -14,6 +14,7 @@
       {
         "id": "handy",
         "kind": "dictation",
+        "os": "windows",
         "download": {
           "url": "https://github.com/cjpais/Handy/releases/download/v0.10.2/Handy_0.10.2_x64_en-US.msi",
           "sha256": "7f42865ed359836a185ec4eabbea339bb7a54dcb1332ce6558e3781ce9927b29",
@@ -24,6 +25,21 @@
           { "command": "msiexec", "args": ["/a", "${appPath}\\Handy_0.10.2_x64_en-US.msi", "/qn", "TARGETDIR=${appPath}\\handy"] }
         ],
         "controller": { "command": "${appPath}/handy/PFiles/Handy/handy.exe", "args": ["--toggle-transcription"] }
+      },
+      {
+        "id": "handy-linux",
+        "kind": "dictation",
+        "os": "linux",
+        "download": {
+          "url": "https://github.com/cjpais/Handy/releases/download/v0.10.2/Handy_0.10.2_amd64.AppImage",
+          "sha256": "17c5f1a4a33f9c4c5c234a084cc0aaf766f3a5b62662e02d70e51161800ace17",
+          "size": 124029432,
+          "version": "0.10.2"
+        },
+        "setup": [
+          { "command": "sh", "args": ["-c", "cd \"$1\" && chmod +x Handy_0.10.2_amd64.AppImage && rm -rf squashfs-root && ./Handy_0.10.2_amd64.AppImage --appimage-extract >/dev/null", "sh", "${appPath}"] }
+        ],
+        "controller": { "command": "${appPath}/squashfs-root/AppRun", "args": ["--toggle-transcription"] }
       }
     ]
   }
